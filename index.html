@@ -92,6 +92,8 @@ canvas{display:block}
 button,select{touch-action:manipulation}
 button.mini{font-size:12px;padding:2px 8px;margin-left:2px}
 .presets{margin-top:4px}
+.roomtabs{margin-left:auto}
+header .sub{flex-basis:100%}
 .lxleg{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--ink-2)}
 .lxleg i{display:inline-block;width:16px;height:3px;border-radius:2px;vertical-align:middle;margin-right:6px}
 .lxleg i.band{width:14px;height:10px;border-radius:2px;background:var(--sun-soft);border:1px solid var(--sun)}
@@ -112,6 +114,7 @@ button.mini{font-size:12px;padding:2px 8px;margin-left:2px}
 .tabpane{display:grid;gap:16px}
 .tabpane[hidden]{display:none}
 .leaf{display:grid;gap:6px}
+.leaf[hidden],.leafnote[hidden]{display:none}
 .leaf .lt{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .leaf .lt b{font-weight:600}
 .leaf .lt span{font-size:12px;color:var(--ink-3)}
@@ -133,6 +136,8 @@ button.mini{font-size:12px;padding:2px 8px;margin-left:2px}
   main{gap:12px}
   header{gap:2px}
   h1{font-size:22px}
+  .roomtabs{margin-left:0;width:100%}
+  .roomtabs button{flex:1}
   .sub{font-size:12px}
   .card{padding:12px}
   .short{display:inline}.long,.deskonly{display:none}
@@ -166,7 +171,11 @@ button.mini{font-size:12px;padding:2px 8px;margin-left:2px}
 <div class="wrap">
   <header>
     <h1>Insolação do cômodo</h1>
-    <span class="sub">Janela a leste em Valinhos (SP) · sol direto que entra pela janela ao longo de 2026</span>
+    <div class="seg roomtabs" role="tablist" aria-label="Cômodo">
+      <button type="button" role="tab" data-room="valinhos" class="on">Quarto · Valinhos</button>
+      <button type="button" role="tab" data-room="sp">Loft · São Paulo</button>
+    </div>
+    <span class="sub" id="roomSub"></span>
   </header>
 
   <aside>
@@ -190,18 +199,21 @@ button.mini{font-size:12px;padding:2px 8px;margin-left:2px}
             <button type="button" data-leaf="R" data-v="1" class="closed">Fechada</button>
           </div>
         </div>
-        <p class="hint" style="margin:0">Esquerda e direita para quem está dentro do cômodo olhando pela janela. Folha fechada bloqueia o sol, como uma veneziana ou folha cega.</p>
+        <p class="hint leafnote" style="margin:0">Esquerda e direita para quem está dentro do cômodo olhando pela janela. Folha fechada bloqueia o sol, como uma veneziana ou folha cega.</p>
+        <p class="hint" id="noLeaves" style="margin:0" hidden>Envidraçamento de correr em vidro incolor, sem folhas opacas: abrir ou fechar os vidros não muda o sol que entra. Ajuste as medidas e a orientação na outra aba.</p>
       </div>
       <div class="tabpane" id="tab-medidas" role="tabpanel" hidden>
         <fieldset>
           <legend>Cômodo</legend>
           <div class="f"><label for="pW">Largura (parede da janela), m</label><input id="pW" type="number" step="0.05" min="1" value="3"></div>
           <div class="f"><label for="pL">Profundidade, m</label><input id="pL" type="number" step="0.05" min="1" value="4.2"></div>
+          <div class="f"><label for="pWb">Largura da parede do fundo, m</label><input id="pWb" type="number" step="0.05" min="0.5" value="3"></div>
           <div class="f"><label for="pH">Pé-direito, m<span class="est">estimado</span></label><input id="pH" type="number" step="0.05" min="2" value="2.7"></div>
         </fieldset>
         <fieldset>
           <legend>Janela (2 folhas, centralizada)</legend>
           <div class="f"><label for="pWW">Largura, m</label><input id="pWW" type="number" step="0.05" min="0.2" value="1.2"></div>
+          <div class="f"><label for="pWOff">Distância do canto esquerdo, m</label><input id="pWOff" type="number" step="0.05" min="0" value="0.9"></div>
           <div class="f"><label for="pWH">Altura, m</label><input id="pWH" type="number" step="0.05" min="0.2" value="0.9"></div>
           <div class="f"><label for="pSill">Peitoril (piso → base), m<span class="est">estimado</span></label><input id="pSill" type="number" step="0.05" min="0" value="1.1"></div>
           <div class="f"><label for="pMull">Montante central, cm<span class="est">estimado</span></label><input id="pMull" type="number" step="1" min="0" value="5"></div>
@@ -222,7 +234,8 @@ button.mini{font-size:12px;padding:2px 8px;margin-left:2px}
         </fieldset>
         <fieldset>
           <legend>Orientação e local</legend>
-          <div class="f"><label for="pFac">Azimute da fachada, ° (Norte verdadeiro)</label><input id="pFac" type="number" step="1" min="0" max="360" value="90"></div>
+          <div class="f"><label for="pFac">Azimute da fachada, ° (Norte verdadeiro)</label><input id="pFac" type="number" step="0.5" min="0" max="360" value="90"></div>
+          <div class="f"><label for="pObs">Prédios à frente: altura angular, °</label><input id="pObs" type="number" step="1" min="0" max="80" value="0"></div>
           <div class="f"><label for="pLat">Latitude, °</label><input id="pLat" type="number" step="0.0001" value="-22.9706"></div>
           <div class="f"><label for="pLon">Longitude, °</label><input id="pLon" type="number" step="0.0001" value="-46.9958"></div>
         </fieldset>
@@ -295,7 +308,7 @@ button.mini{font-size:12px;padding:2px 8px;margin-left:2px}
       <div class="vhead"><h2>Luz natural no dia · sem sol direto</h2><span class="hint" id="dayLuxSub"></span></div>
       <div class="lxleg" id="dayLuxLeg"></div>
       <div class="cvw" style="margin-top:6px"><canvas id="cDayLux" aria-label="Iluminância natural ao longo do dia em três pontos do cômodo"></canvas></div>
-      <div class="hint" style="margin-top:4px">Iluminância na altura do plano de leitura, no eixo do cômodo, sem contar a mancha de sol direto (céu + luz refletida nas superfícies, incluindo o sol que bate no piso). Escala logarítmica. Toque no gráfico para mudar a hora.</div>
+      <div class="hint" style="margin-top:4px">Iluminância na altura do plano de leitura, nos pontos marcados na planta (modo Luz), sem contar a mancha de sol direto (céu + luz refletida nas superfícies, incluindo o sol que bate no piso). Escala logarítmica. Toque no gráfico para mudar a hora.</div>
     </div>
 
     <div class="card">
@@ -307,7 +320,7 @@ button.mini{font-size:12px;padding:2px 8px;margin-left:2px}
             <option value="total">Área iluminada total (m²)</option>
             <option value="floor">Área iluminada no piso (m²)</option>
             <option value="power">Potência solar direta entrando (W, céu limpo)</option>
-            <option value="lux">Luz natural difusa no centro (lux)</option>
+            <option value="lux" id="optLux">Luz natural difusa no centro (lux)</option>
           </select>
         </div>
       </div>
@@ -327,8 +340,9 @@ button.mini{font-size:12px;padding:2px 8px;margin-left:2px}
         <li>Posição do sol pelo algoritmo da NOAA (com refração atmosférica), fuso UTC−3 sem horário de verão.</li>
         <li>A janela vira uma abertura efetiva: o recorte da espessura da parede (laterais, verga) e a sombra do beiral reduzem a área por onde o sol passa. O montante central das duas folhas faz uma faixa de sombra, e uma folha marcada como fechada bloqueia o sol na sua metade.</li>
         <li>Essa abertura é projetada na direção dos raios e recortada contra piso, parede do fundo e paredes laterais. As áreas são exatas para essa geometria.</li>
-        <li>O beiral é tratado como contínuo ao longo da fachada. A “altura” informada (0,90 m) foi lida como altura da janela; peitoril, pé-direito, espessura da parede e montante são estimativas editáveis.</li>
-        <li>Luz natural: céu padrão CIE (limpo ou encoberto) com iluminâncias externas do IES. A parcela do céu é integrada ponto a ponto pela abertura (com recorte da parede e do beiral); a parcela refletida nas superfícies usa o método split-flux, com transmissão do vidro e refletâncias editáveis. Referências: 300 lx é confortável para leitura; 100 lx já parece penumbra.</li>
+        <li>Os prédios à frente entram como um horizonte uniforme: abaixo da altura angular informada não passa sol, e o céu é trocado por fachadas iluminadas. O cômodo é tratado como um trapézio sem divisórias internas (móveis, armários e paredes baixas não fazem sombra).</li>
+        <li>O beiral é tratado como contínuo ao longo da fachada. Medidas marcadas como estimadas não vieram de projeto e podem ser editadas.</li>
+        <li>Luz natural: céu padrão CIE (limpo ou encoberto) com iluminâncias externas do IES. A parcela do céu é integrada ponto a ponto pela abertura (com recorte da parede e do beiral); a luz refletida é calculada por radiosidade entre cerca de 200 trechos de piso, teto e paredes, com transmissão do vidro e refletâncias editáveis. Referências: 300 lx é confortável para leitura; 100 lx já parece penumbra.</li>
         <li>Energia e potência usam irradiância direta de céu limpo (modelo de Meinel, altitude ~660 m). Não entram nuvens, luz difusa, reflexos, vidro nem obstruções externas como prédios e árvores.</li>
       </ul>
     </div>
@@ -340,8 +354,9 @@ button.mini{font-size:12px;padding:2px 8px;margin-left:2px}
 "use strict";
 const rad=Math.PI/180, deg=180/Math.PI;
 const MONTHS=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
-const P={W:3,L:4.2,H:2.7,ww:1.2,wh:0.9,sill:1.1,mull:0.05,wallT:0.15,ohD:0.25,ohOff:0,facade:90,lat:-22.9706,lon:-46.9958,tz:-3,year:2026,alt_km:0.66,closeL:false,closeR:false};
-const T0=240, T1=1200, STEP=5, ROWS=(T1-T0)/STEP, NDAYS=365, CELL=0.05;
+const P={W:3,L:4.2,H:2.7,ww:1.2,wh:0.9,sill:1.1,mull:0.05,wallT:0.15,ohD:0.25,ohOff:0,facade:90,lat:-22.9706,lon:-46.9958,tz:-3,year:2026,alt_km:0.66,closeL:false,closeR:false,wb:3,wOff:0.9,obs:0};
+const T0=240, T1=1200, STEP=5, ROWS=(T1-T0)/STEP, NDAYS=365;
+let CELL=0.05;
 const state={doy:304,minute:480,view:{yaw:205,pitch:42},mode:'instant',metric:'total',playing:false};
 let ANN=null, dayHeat=null, dayHeatKey=null, yearHeat=null;
 
@@ -389,10 +404,25 @@ function dni(alt){
 
 /* ---------- Geometria ----------
  Coordenadas do cômodo: d = profundidade a partir da face interna da parede da janela (0..L),
- u = ao longo da parede, 0 à esquerda de quem olha pela janela (0..W), z = altura (0..H). */
+ u = ao longo da parede da janela, 0 no canto esquerdo de quem olha pela janela (0..W), z = altura (0..H).
+ Planta: trapézio retângulo. Parede direita reta (u=W); parede esquerda pode ser inclinada até a parede do fundo (largura wb). */
+let RG=null;
+function roomGeo(){
+  const W=P.W,L=P.L,Wb=Math.min(P.wb,W),uL=W-Wb;
+  const floor=[[0,0],[0,W],[L,W],[L,uL]];
+  const cen=[L/2,(W+uL/2)/2];
+  const mk=(a,b)=>{const len=Math.hypot(b[0]-a[0],b[1]-a[1]),e=[(b[0]-a[0])/len,(b[1]-a[1])/len];let o=[e[1],-e[0]];if(o[0]*(cen[0]-a[0])+o[1]*(cen[1]-a[1])>0)o=[-o[0],-o[1]];return {a,b,len,e,o};};
+  const walls={win:mk([0,0],[0,W]),right:mk([0,W],[L,W]),back:mk([L,uL],[L,W]),left:mk([0,0],[L,uL])};
+  const area=Math.abs(polyArea(floor)), perim=walls.win.len+walls.right.len+walls.back.len+walls.left.len;
+  RG={W,L,Wb,uL,floor,walls,area,perim,sgn:Math.sign(polyArea(floor))};
+  return RG;
+}
+const winU=()=>[P.wOff,P.wOff+P.ww];
+function inFloor(d,u){const f=RG.floor,sg=RG.sgn;for(let i=0;i<4;i++){const A=f[i],B=f[(i+1)%4];if(sg*((B[0]-A[0])*(u-A[1])-(B[1]-A[1])*(d-A[0]))<-1e-9)return false;}return true;}
+function leftU(d){return RG.uL*d/RG.L;}
 function apertureRects(s){
   if(s.U<=5e-4||s.Ef<=5e-4) return [];
-  const u0=(P.W-P.ww)/2, u1=u0+P.ww, z0=P.sill, z1=P.sill+P.wh;
+  const [u0,u1]=winU(), z0=P.sill, z1=P.sill+P.wh;
   const a=s.Nr*P.wallT/s.Ef;
   const uLo=Math.max(u0,u0+a), uHi=Math.min(u1,u1+a);
   let zHi=z1-s.U*P.wallT/s.Ef;
@@ -403,6 +433,17 @@ function apertureRects(s){
   if(!P.closeR&&uc+m<uHi) segs.push([Math.max(uLo,uc+m),uHi]);
   if(!P.closeL&&!P.closeR&&m===0&&segs.length===2) segs.splice(0,2,[uLo,uHi]);
   return segs.filter(q=>q[1]-q[0]>1e-6).map(([a,b])=>({u0:a,u1:b,z0:z0,z1:zHi}));
+}
+function clipConvex(poly,clip){
+  const sg=Math.sign(polyArea(clip))||1; let out=poly;
+  for(let k=0;k<clip.length;k++){
+    const A=clip[k],B=clip[(k+1)%clip.length], inp=out; out=[]; if(!inp.length) break;
+    const side=p=>sg*((B[0]-A[0])*(p[1]-A[1])-(B[1]-A[1])*(p[0]-A[0]));
+    for(let i=0;i<inp.length;i++){const p=inp[i],q=inp[(i+1)%inp.length],dp=side(p),dq=side(q);
+      if(dp>=0) out.push(p);
+      if((dp>=0)!==(dq>=0)){const t=dp/(dp-dq); out.push([p[0]+(q[0]-p[0])*t,p[1]+(q[1]-p[1])*t]);}}
+  }
+  return out;
 }
 function clipRect(poly,x0,y0,x1,y1){
   let out=poly;
@@ -417,22 +458,22 @@ function clipRect(poly,x0,y0,x1,y1){
   return out;
 }
 function polyArea(p){let a=0;for(let i=0;i<p.length;i++){const A=p[i],B=p[(i+1)%p.length];a+=A[0]*B[1]-B[0]*A[1];}return a/2;}
-const FACE_DIM=()=>({floor:[P.L,P.W],back:[P.W,P.H],left:[P.L,P.H],right:[P.L,P.H]});
+const FACE_DIM=()=>({floor:[RG.L,RG.W],back:[RG.walls.back.len,P.H],left:[RG.walls.left.len,P.H],right:[RG.walls.right.len,P.H]});
+function wallHit(wl,s,u){const od=wl.o[0]*s.Ef+wl.o[1]*s.Nr; if(od<=1e-9) return null; return (wl.o[0]*(wl.a[0]-0)+wl.o[1]*(wl.a[1]-u))/od;}
 function patches(s,rects){
   const out={floor:[],back:[],left:[],right:[]};
   for(const r of rects){
     const pts=[[r.u0,r.z0],[r.u1,r.z0],[r.u1,r.z1],[r.u0,r.z1]];
-    out.floor.push(clipRect(pts.map(([u,z])=>[s.Ef*z/s.U,u+s.Nr*z/s.U]),0,0,P.L,P.W));
-    out.back.push(clipRect(pts.map(([u,z])=>[u+s.Nr*P.L/s.Ef,z-s.U*P.L/s.Ef]),0,0,P.W,P.H));
-    if(s.Nr>1e-6) out.right.push(clipRect(pts.map(([u,z])=>{const t=(P.W-u)/s.Nr;return [s.Ef*t,z-s.U*t];}),0,0,P.L,P.H));
-    if(s.Nr<-1e-6) out.left.push(clipRect(pts.map(([u,z])=>{const t=-u/s.Nr;return [s.Ef*t,z-s.U*t];}),0,0,P.L,P.H));
+    out.floor.push(clipConvex(pts.map(([u,z])=>[s.Ef*z/s.U,u+s.Nr*z/s.U]),RG.floor));
+    for(const k of ['back','left','right']){const wl=RG.walls[k], od=wl.o[0]*s.Ef+wl.o[1]*s.Nr; if(od<=1e-9) continue;
+      out[k].push(clipRect(pts.map(([u,z])=>{const t=(wl.o[0]*wl.a[0]+wl.o[1]*(wl.a[1]-u))/od, pd=s.Ef*t, pu=u+s.Nr*t; return [(pd-wl.a[0])*wl.e[0]+(pu-wl.a[1])*wl.e[1], z-s.U*t];}),0,0,wl.len,P.H));}
   }
   for(const k in out) out[k]=out[k].filter(p=>p.length>=3&&Math.abs(polyArea(p))>1e-7);
   return out;
 }
 function evalAt(doy,minute){
   const sp=sunPos(doy,minute), s=sunLocal(sp.alt,sp.az);
-  const rects=sp.alt>0?apertureRects(s):[];
+  const rects=sp.alt>Math.max(0,P.obs)?apertureRects(s):[];
   const Aeff=rects.reduce((a,r)=>a+(r.u1-r.u0)*(r.z1-r.z0),0);
   const pt=rects.length?patches(s,rects):{floor:[],back:[],left:[],right:[]};
   const ar={};let tot=0,depth=0;
@@ -505,13 +546,14 @@ function skyState(doy,minute){
   let k;
   if(clear){let sum=0;for(const c of SKYG){sum+=fClear(Math.acos(clamp(c.x*S[0]+c.y*S[1]+c.z*S[2],-1,1)))*phiClear(c.z)*c.z*c.dw;}k=Edh/sum;}
   else k=Edh*9/(7*Math.PI);
-  return {sp,s:sunLocal(sp.alt,sp.az),sa,S,Edh,Edn,k,clear,sf:Math.sin(P.facade*rad),cf:Math.cos(P.facade*rad)};
+  return {sp,s:sunLocal(sp.alt,sp.az),sa,S,Edh,Edn,k,clear,sf:Math.sin(P.facade*rad),cf:Math.cos(P.facade*rad),so:Math.sin(P.obs*rad),Lo:LX.rg*(Edh+Edn*sa)/Math.PI};
 }
 function skyLum(st,x,y,z){
+  if(z<st.so) return st.Lo;
   if(st.clear) return st.k*fClear(Math.acos(clamp(x*st.S[0]+y*st.S[1]+z*st.S[2],-1,1)))*phiClear(z);
   return st.k*(1+2*z)/3;
 }
-function winGeo(){const u0=(P.W-P.ww)/2,u1=u0+P.ww,uc=(u0+u1)/2,m=P.mull/2,segs=[];if(!P.closeL)segs.push([u0,uc-m]);if(!P.closeR)segs.push([uc+m,u1]);return {u0,u1,z0:P.sill,z1:P.sill+P.wh,segs:segs.filter(q=>q[1]-q[0]>1e-6)};}
+function winGeo(){const [u0,u1]=winU(),uc=(u0+u1)/2,m=P.mull/2,segs=[];if(!P.closeL)segs.push([u0,uc-m]);if(!P.closeR)segs.push([uc+m,u1]);return {u0,u1,z0:P.sill,z1:P.sill+P.wh,segs:segs.filter(q=>q[1]-q[0]>1e-6)};}
 function passOut(G,u,z,ef,lat,up){
   const t=P.wallT/ef, uo=u+lat*t, zo=z+up*t;
   if(uo<G.u0||uo>G.u1||zo<G.z0||zo>G.z1) return false;
@@ -519,17 +561,60 @@ function passOut(G,u,z,ef,lat,up){
   return true;
 }
 function winSamples(G,step){const out=[];for(const [a,b] of G.segs){const nu=Math.max(1,Math.round((b-a)/step)),nz=Math.max(1,Math.round((G.z1-G.z0)/step)),du=(b-a)/nu,dz=(G.z1-G.z0)/nz;for(let i=0;i<nu;i++)for(let j=0;j<nz;j++)out.push([a+(i+.5)*du,G.z0+(j+.5)*dz,du*dz]);}return out;}
-function ircOf(st,G){
-  const hz=G.z1-G.z0, Aw=G.segs.reduce((a,q)=>a+(q[1]-q[0])*hz,0); if(Aw<=0) return 0;
-  const uc=G.segs.reduce((a,q)=>a+(q[0]+q[1])/2*(q[1]-q[0]),0)/(Aw/hz), zc=(G.z0+G.z1)/2;
-  let Eup=0;
-  for(const c of SKYG){const ef=c.x*st.sf+c.y*st.cf; if(ef<=0)continue; if(!passOut(G,uc,zc,ef,c.x*st.cf-c.y*st.sf,c.z))continue; Eup+=skyLum(st,c.x,c.y,c.z)*ef*c.dw;}
-  const Elow=LX.rg*(st.Edh+st.Edn*st.sa)/2;
-  let Fsun=0; if(st.Edn>0&&st.s.Ef>0) Fsun=st.Edn*st.s.Ef*apertureRects(st.s).reduce((a,r)=>a+(r.u1-r.u0)*(r.z1-r.z0),0);
-  const Af=P.W*P.L, per=2*(P.W+P.L), Alw=per*zc, Auw=per*(P.H-zc), Atot=2*Af+per*P.H;
-  const rfw=(Af*LX.rf+Alw*LX.rw)/(Af+Alw), rcw=(Af*LX.rc+Auw*LX.rw)/(Af+Auw), R=(Af*LX.rf+Af*LX.rc+per*P.H*LX.rw)/Atot;
-  return LX.tau*((Aw*Eup+Fsun)*rfw+Aw*Elow*rcw)/(Atot*(1-R));
+/* Luz refletida: radiosidade entre piso, teto e paredes (cômodo convexo, sem obstruções internas) */
+let RAD=null;
+function cellOf(x,y,z){if(z<=0)return 216;const zen=Math.acos(Math.min(1,z)),i=Math.min(8,Math.floor(zen/(Math.PI/18)));let a=Math.atan2(x,y);if(a<0)a+=2*Math.PI;return i*24+Math.min(23,Math.floor(a/(Math.PI/12)));}
+function skyCells(st){const L=new Float64Array(217);for(let k=0;k<216;k++){const c=SKYG[k];L[k]=skyLum(st,c.x,c.y,c.z);}L[216]=st.Lo;return L;}
+function mapGrid(){const c=Math.max(0.1,Math.max(P.L,P.W)/60);return {c,nx:Math.ceil(P.L/c-1e-6),ny:Math.ceil(P.W/c-1e-6)};}
+function invertM(M,n){const A=Float64Array.from(M),I=new Float64Array(n*n);for(let i=0;i<n;i++)I[i*n+i]=1;
+  for(let c=0;c<n;c++){const d=A[c*n+c];for(let k=0;k<n;k++){A[c*n+k]/=d;I[c*n+k]/=d;}
+    for(let r=0;r<n;r++){if(r===c)continue;const f=A[r*n+c];if(f===0)continue;for(let k=0;k<n;k++){A[r*n+k]-=f*A[c*n+k];I[r*n+k]-=f*I[c*n+k];}}}
+  return I;}
+function buildRad(){
+  const key=JSON.stringify([P,LX,ROOM_ID]); if(RAD&&RAD.key===key) return RAD;
+  const H=P.H, Atot=2*RG.area+RG.perim*H, h=clamp(Math.sqrt(Atot/220),0.25,1.2), pt=[];
+  const nx=Math.max(1,Math.round(RG.L/h)), ny=Math.max(1,Math.round(RG.W/h)), dx=RG.L/nx, dy=RG.W/ny;
+  for(let i=0;i<nx;i++)for(let j=0;j<ny;j++){const pc=clipConvex([[i*dx,j*dy],[(i+1)*dx,j*dy],[(i+1)*dx,(j+1)*dy],[i*dx,(j+1)*dy]],RG.floor), A=Math.abs(polyArea(pc)); if(A<1e-3)continue;
+    let cx=0,cy=0;for(const q of pc){cx+=q[0];cy+=q[1];}cx/=pc.length;cy/=pc.length;
+    pt.push({c:[cx,cy,0],n:[0,0,1],A,rho:LX.rf,face:'floor',poly:pc}); pt.push({c:[cx,cy,H],n:[0,0,-1],A,rho:LX.rc,face:'ceil'});}
+  const [u0,u1]=winU(), wz0=P.sill, wz1=P.sill+P.wh;
+  for(const k of ['win','right','back','left']){const wl=RG.walls[k], ns=Math.max(1,Math.round(wl.len/h)), nz=Math.max(1,Math.round(H/h)), ds=wl.len/ns, dz=H/nz;
+    for(let a=0;a<ns;a++)for(let b=0;b<nz;b++){const s0=a*ds,s1=s0+ds,z0=b*dz,z1=z0+dz,sm=(s0+s1)/2; let rho=LX.rw;
+      if(k==='win'){const ov=Math.max(0,Math.min(s1,u1)-Math.max(s0,u0))*Math.max(0,Math.min(z1,wz1)-Math.max(z0,wz0)); rho*=1-ov/(ds*dz);}
+      pt.push({c:[wl.a[0]+sm*wl.e[0],wl.a[1]+sm*wl.e[1],(z0+z1)/2],n:[-wl.o[0],-wl.o[1],0],A:ds*dz,rho,face:k,poly:[[s0,z0],[s1,z0],[s1,z1],[s0,z1]]});}}
+  const n=pt.length, M=new Float64Array(n*n), row=new Float64Array(n);
+  for(let i=0;i<n;i++){const pi=pt[i];let sum=0;row.fill(0);
+    for(let j=0;j<n;j++){if(i===j)continue;const pj=pt[j],vx=pj.c[0]-pi.c[0],vy=pj.c[1]-pi.c[1],vz=pj.c[2]-pi.c[2],r2=vx*vx+vy*vy+vz*vz,r=Math.sqrt(r2);
+      const ci=(pi.n[0]*vx+pi.n[1]*vy+pi.n[2]*vz)/r, cj=-(pj.n[0]*vx+pj.n[1]*vy+pj.n[2]*vz)/r; if(ci<=0||cj<=0)continue;
+      const f=ci*cj*pj.A/(Math.PI*r2+pj.A); row[j]=f; sum+=f;}
+    const sc=sum>1?1/sum:1; for(let j=0;j<n;j++) M[i*n+j]=(i===j?1:0)-pi.rho*row[j]*sc;}
+  const T=invertM(M,n); for(let i=0;i<n;i++) for(let j=0;j<n;j++) T[i*n+j]*=pt[j].rho;
+  // vista do céu/solo de cada superfície através da janela, agrupada nas células do céu
+  const G=winGeo(), smp=winSamples(G,smpStep(120)), sf=Math.sin(P.facade*rad), cf=Math.cos(P.facade*rad), V=new Float64Array(n*217);
+  for(let i=0;i<n;i++){const p=pt[i]; if(p.face==='win')continue;
+    for(const q of smp){const vx=-p.c[0],vy=q[0]-p.c[1],vz=q[1]-p.c[2],r2=Math.max(vx*vx+vy*vy+vz*vz,0.04),r=Math.sqrt(r2),dx_=vx/r,dy_=vy/r,dz_=vz/r;
+      const cp=p.n[0]*dx_+p.n[1]*dy_+p.n[2]*dz_, ef=-dx_; if(cp<=0||ef<=1e-6)continue; if(!passOut(G,q[0],q[1],ef,dy_,dz_))continue;
+      V[i*217+cellOf(ef*sf+dy_*cf,ef*cf-dy_*sf,dz_)]+=LX.tau*cp*ef*q[2]/r2;}}
+  const byFace={}; pt.forEach((p,i)=>{(byFace[p.face]=byFace[p.face]||[]).push(i); if(p.poly){let a=1e9,b=-1e9,c=1e9,d=-1e9;for(const q of p.poly){a=Math.min(a,q[0]);b=Math.max(b,q[0]);c=Math.min(c,q[1]);d=Math.max(d,q[1]);}p.bb=[a,b,c,d];}});
+  const wFor=(px,py,pz)=>{const g=new Float64Array(n);for(let j=0;j<n;j++){const pj=pt[j],vx=pj.c[0]-px,vy=pj.c[1]-py,vz=pj.c[2]-pz,r2=vx*vx+vy*vy+vz*vz,r=Math.sqrt(r2);
+      const cp=vz/r, cj=-(pj.n[0]*vx+pj.n[1]*vy+pj.n[2]*vz)/r; if(cp>0&&cj>0) g[j]=cp*cj*pj.A/(Math.PI*r2+pj.A);}
+    const w=new Float64Array(n); for(let j=0;j<n;j++){const gj=g[j]; if(!gj)continue; const o=j*n; for(let k=0;k<n;k++) w[k]+=gj*T[o+k];} return w;};
+  const mg=mapGrid(), K=new Float32Array(mg.nx*mg.ny*n);
+  for(let i=0;i<mg.nx;i++) for(let j=0;j<mg.ny;j++){const d=Math.min((i+.5)*mg.c,P.L-1e-3); let u=Math.min((j+.5)*mg.c,P.W-1e-3); if(!inFloor(d,u)){const ul=leftU(d)+0.02; if((j+1)*mg.c>ul&&inFloor(d,ul)) u=ul; else continue;} K.set(wFor(d,u,LX.hwp),(i*mg.ny+j)*n);}
+  const wRef=refPts().map(r=>wFor(r[1],r[2],LX.hwp));
+  const uRef=wRef.map(w=>{const u=new Float64Array(217);for(let i=0;i<n;i++){const wi=w[i];if(!wi)continue;const o=i*217;for(let c=0;c<217;c++)u[c]+=wi*V[o+c];}return u;});
+  RAD={key,pt,n,T,V,K,mg,wRef,uRef,byFace}; return RAD;
 }
+function sunE0(st,R){
+  const out=[]; const s=st.s; if(st.Edn<=0||st.sp.alt<=P.obs||s.Ef<=5e-4||s.U<=0) return out;
+  const rects=apertureRects(s); if(!rects.length) return out; const pp=patches(s,rects);
+  for(const f in pp){ if(!pp[f].length) continue; const cosF=f==='floor'?s.U:(RG.walls[f].o[0]*s.Ef+RG.walls[f].o[1]*s.Nr); if(cosF<=0)continue; const Es=LX.tau*st.Edn*cosF;
+    for(const sp of pp[f]){let a=1e9,b=-1e9,c=1e9,d=-1e9;for(const q of sp){a=Math.min(a,q[0]);b=Math.max(b,q[0]);c=Math.min(c,q[1]);d=Math.max(d,q[1]);}
+      for(const i of R.byFace[f]||[]){const p=R.pt[i],bb=p.bb; if(bb[0]>b||bb[1]<a||bb[2]>d||bb[3]<c)continue; const ov=Math.abs(polyArea(clipConvex(sp,p.poly))); if(ov>1e-6) out.push([i,Es*ov/p.A]);}}}
+  return out;
+}
+function radE0(st,R){const Lc=skyCells(st),n=R.n,E0=new Float64Array(n);for(let i=0;i<n;i++){let v=0;const o=i*217;for(let c=0;c<217;c++)v+=R.V[o+c]*Lc[c];E0[i]=v;}for(const [i,v] of sunE0(st,R))E0[i]+=v;return E0;}
+const dotv=(a,b)=>{let s=0;for(let i=0;i<a.length;i++)s+=a[i]*b[i];return s;};
 function scAt(st,G,smp,d,u,z){
   let sc=0;
   for(const q of smp){const vu=q[0]-u, vz=q[1]-z; if(vz<=0)continue; const r2=d*d+vu*vu+vz*vz, r=Math.sqrt(r2), ef=d/r, lat=vu/r, up=vz/r;
@@ -538,38 +623,47 @@ function scAt(st,G,smp,d,u,z){
   return LX.tau*sc;
 }
 function directAt(st,G,d,u,z){
-  const s=st.s; if(st.Edn<=0||s.Ef<=5e-4||s.U<=0) return 0;
+  const s=st.s; if(st.Edn<=0||s.Ef<=5e-4||s.U<=0||st.sp.alt<=P.obs) return 0;
   const t=d/s.Ef, ui=u-s.Nr*t, zi=z+s.U*t;
   if(zi<G.z0||zi>G.z1||!G.segs.some(q=>ui>=q[0]&&ui<=q[1])) return 0;
   return passOut(G,ui,zi,s.Ef,-s.Nr,s.U)?LX.tau*st.Edn*s.U:0;
 }
-const refPts=()=>[['perto da janela',Math.min(1,P.L/4)],['centro',P.L/2],['fundo',Math.max(P.L/2,P.L-0.5)]];
-function luxPoints(doy,minute,step=0.1){
+function refPts(){
+  if(ROOM.refs) return ROOM.refs.filter(r=>r[1]<P.L&&inFloor(r[1],r[2]));
+  const wc=P.wOff+P.ww/2, at=d=>Math.max(wc,leftU(d)+0.3);
+  return [['perto da janela',Math.min(1,P.L/4)],['centro',P.L/2],['fundo',Math.max(P.L/2,P.L-0.5)]].map(([n,d])=>[n,d,at(d)]);
+}
+const smpStep=n=>{const G=winGeo(),A=G.segs.reduce((a,q)=>a+(q[1]-q[0]),0)*(G.z1-G.z0);return Math.max(0.1,Math.sqrt(A/n));};
+function luxPoints(doy,minute,step){
   const st=skyState(doy,minute); if(!st) return null;
-  const G=winGeo(), smp=winSamples(G,step), irc=ircOf(st,G);
-  return refPts().map(([n,d])=>scAt(st,G,smp,d,P.W/2,LX.hwp)+irc);
+  const R=buildRad(), G=winGeo(), smp=winSamples(G,step||smpStep(160)), E0=radE0(st,R);
+  return refPts().map(([n,d,u],k)=>scAt(st,G,smp,d,u,LX.hwp)+dotv(R.wRef[k],E0));
 }
 let luxMapC=null, luxMapKey='';
 function getLuxMap(){
   const key=luxVer+'|'+state.doy+'|'+state.minute+'|'+SKY; if(luxMapC&&luxMapKey===key) return luxMapC;
-  const c=0.1, nx=Math.round(P.L/c), ny=Math.round(P.W/c), a=new Float32Array(nx*ny), st=skyState(state.doy,state.minute);
-  if(st){const G=winGeo(), smp=winSamples(G,0.1), irc=ircOf(st,G);
-    for(let i=0;i<nx;i++) for(let j=0;j<ny;j++){const d=(i+.5)*c,u=(j+.5)*c; a[i*ny+j]=scAt(st,G,smp,d,u,LX.hwp)+irc+directAt(st,G,d,u,LX.hwp);}}
+  const {c,nx,ny}=mapGrid(), a=new Float32Array(nx*ny).fill(-1), st=skyState(state.doy,state.minute);
+  if(st){const R=buildRad(), G=winGeo(), smp=winSamples(G,smpStep(150)), E0=radE0(st,R), n=R.n;
+    for(let i=0;i<nx;i++) for(let j=0;j<ny;j++){const d=Math.min((i+.5)*c,P.L-1e-3); let u=Math.min((j+.5)*c,P.W-1e-3); if(!inFloor(d,u)){const ul=leftU(d)+0.02; if((j+1)*c>ul&&inFloor(d,ul)) u=ul; else continue;}
+      const o=(i*ny+j)*n; let ind=0; for(let k=0;k<n;k++) ind+=R.K[o+k]*E0[k];
+      a[i*ny+j]=scAt(st,G,smp,d,u,LX.hwp)+ind+directAt(st,G,d,u,LX.hwp);}}
   luxMapC={nx,ny,c,a,night:!st}; luxMapKey=key; return luxMapC;
 }
 let dayLuxC=null, dayLuxKey='';
 function getDayLux(doy){
   const key=luxVer+'|'+doy+'|'+SKY; if(dayLuxC&&dayLuxKey===key) return dayLuxC;
-  const v=[[],[],[]], t=[];
+  const v=refPts().map(()=>[]), t=[];
   for(let r=0;r<ROWS;r++){const m=T0+r*STEP, p=luxPoints(doy,m); if(!p)continue; t.push(m); p.forEach((x,i)=>v[i].push(x));}
   dayLuxC={t,v}; dayLuxKey=key; return dayLuxC;
 }
 function getAnnLux(){
   if(ANN.lux&&ANN.luxKey===luxVer+'|'+SKY) return ANN.lux;
-  const a=new Float32Array(NDAYS*ROWS), G=winGeo(), smp=winSamples(G,0.2), d=P.L/2;
-  for(let dd=1;dd<=NDAYS;dd++) for(let r=ANN.lr0;r<=ANN.lr1;r+=2){const i=(dd-1)*ROWS+r;
-    const st=skyState(dd,T0+r*STEP); if(st) a[i]=scAt(st,G,smp,d,P.W/2,LX.hwp)+ircOf(st,G);
+  const a=new Float32Array(NDAYS*ROWS), G=winGeo(), smp=winSamples(G,smpStep(40)), mid=Math.min(1,refPts().length-1), rp=refPts()[mid], d=rp[1], uu=rp[2], R=buildRad(), wv=R.wRef[mid], uv=R.uRef[mid];
+  const val=st=>{let v=scAt(st,G,smp,d,uu,LX.hwp)+dotv(uv,skyCells(st)); for(const [i,x] of sunE0(st,R)) v+=wv[i]*x; return v;};
+  for(let dd=1;dd<=NDAYS;dd+=2) for(let r=ANN.lr0;r<=ANN.lr1;r+=2){const i=(dd-1)*ROWS+r;
+    const st=skyState(dd,T0+r*STEP); if(st) a[i]=val(st);
     if(r+1<=ANN.lr1&&sunPos(dd,T0+(r+1)*STEP).alt>0.5) a[i+1]=a[i]>0?a[i]:(a[i+2]||0);}
+  for(let dd=2;dd<=NDAYS;dd+=2){const o=(dd-1)*ROWS,p=(dd-2)*ROWS,q=dd<NDAYS?dd*ROWS:p; for(let r=0;r<ROWS;r++){const x=a[p+r],y=a[q+r]; a[o+r]=x>0&&y>0?(x+y)/2:(x>0&&sunPos(dd,T0+r*STEP).alt>0.5?x:0);}}
   ANN.lux=a; ANN.luxKey=luxVer+'|'+SKY; return a;
 }
 const LXMIN=30, LXMAX=10000;
@@ -585,7 +679,10 @@ function rampCss(){return 'linear-gradient(90deg,'+RAMP.map(c=>`rgb(${c})`).join
 function alpha(hex,a){const [r,g,b]=hex2rgb(hex);return `rgba(${r},${g},${b},${a})`;}
 const CARD=['norte','nordeste','leste','sudeste','sul','sudoeste','oeste','noroeste'];
 const cardinal=az=>CARD[Math.round((((az%360)+360)%360)/45)%8];
-function faceNames(){return {win:'Parede da janela ('+cardinal(P.facade)+')',back:'Parede do fundo ('+cardinal(P.facade+180)+')',left:'Parede '+cardinal(P.facade-90),right:'Parede '+cardinal(P.facade+90),floor:'Piso'};}
+const CARD16=['N','NNE','NE','ENE','L','ESE','SE','SSE','S','SSO','SO','OSO','O','ONO','NO','NNO'];
+const card16=az=>CARD16[Math.round((((az%360)+360)%360)/22.5)%16];
+function wallAz(wl){const f=P.facade*rad,sf=Math.sin(f),cf=Math.cos(f),E=-wl.o[0]*sf+wl.o[1]*cf,N=-wl.o[0]*cf-wl.o[1]*sf;return Math.atan2(E,N)*deg;}
+function faceNames(){const w=RG.walls;return {win:'Parede da janela ('+card16(wallAz(w.win))+')',back:'Parede do fundo ('+card16(wallAz(w.back))+')',left:'Parede '+card16(wallAz(w.left)),right:'Parede '+card16(wallAz(w.right)),floor:'Piso'};}
 
 function boxW(el){const cs=getComputedStyle(el);return el.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight);}
 function setupCanvas(cv,h){
@@ -602,33 +699,32 @@ let E=null;
 function draw3D(){
   const cv=document.getElementById('c3d'), w0=boxW(cv.parentElement);
   const {ctx,w,h}=setupCanvas(cv,Math.round(clamp(w0*0.82,240,470)));
-  const v=state.view, tgt=[P.L/2,P.W/2,P.H*0.4], R=3*Math.hypot(P.L,P.W,P.H), cp=Math.cos(v.pitch*rad);
+  const v=state.view, Lr=RG.L, Wr=RG.W, tgt=[Lr/2,Wr/2,P.H*0.4], R=3*Math.hypot(Lr,Wr,P.H), cp=Math.cos(v.pitch*rad);
   const cam=[tgt[0]+R*cp*Math.cos(v.yaw*rad),tgt[1]+R*cp*Math.sin(v.yaw*rad),tgt[2]+R*Math.sin(v.pitch*rad)];
   const fwd=norm(sub(tgt,cam)), right=norm(cross(fwd,[0,0,1])), up=cross(right,fwd);
   const raw=p=>{const q=sub(p,cam),z=dot(q,fwd);return [dot(q,right)/z,dot(q,up)/z];};
-  const u0=(P.W-P.ww)/2,u1=u0+P.ww,z0=P.sill,z1=P.sill+P.wh,zo=z1+P.ohOff;
+  const [u0,u1]=winU(), z0=P.sill, z1=P.sill+P.wh, zo=z1+P.ohOff;
   const s=E.s, sunUp=E.sp.alt>0, front=s.Ef>0, HT=getHeat(), LM=state.mode==='lux'?getLuxMap():null;
   const sunDir=norm([-s.Ef,-s.Nr,s.U]);
-  const wc=[0,(u0+u1)/2,(z0+z1)/2];
-  const sunPt=[wc[0]+1.5*sunDir[0],wc[1]+1.5*sunDir[1],wc[2]+1.5*sunDir[2]];
-  // ajuste automático de escala
-  const fitPts=[[0,0,0],[P.L,0,0],[P.L,P.W,0],[0,P.W,0],[0,0,P.H],[P.L,0,P.H],[P.L,P.W,P.H],[0,P.W,P.H],[-P.wallT-P.ohD,0,zo],[-P.wallT-P.ohD,P.W,zo]];
+  const wc=[0,(u0+u1)/2,(z0+z1)/2], sd=Math.max(1.5,Math.max(Lr,Wr)*0.25);
+  const sunPt=[wc[0]+sd*sunDir[0],wc[1]+sd*sunDir[1],wc[2]+sd*sunDir[2]];
+  const fitPts=[]; for(const q of RG.floor){fitPts.push([q[0],q[1],0],[q[0],q[1],P.H]);}
+  fitPts.push([-P.wallT-P.ohD,0,zo],[-P.wallT-P.ohD,Wr,zo]);
   if(sunUp&&front) fitPts.push(sunPt);
   let mnx=1e9,mxx=-1e9,mny=1e9,mxy=-1e9;
   for(const p of fitPts){const r=raw(p);mnx=Math.min(mnx,r[0]);mxx=Math.max(mxx,r[0]);mny=Math.min(mny,r[1]);mxy=Math.max(mxy,r[1]);}
   const pad=22, f=Math.min((w-2*pad)/(mxx-mnx),(h-2*pad)/(mxy-mny)), cx=(mnx+mxx)/2, cy=(mny+mxy)/2;
   const pr=p=>{const r=raw(p);return [w/2+f*(r[0]-cx),h/2-f*(r[1]-cy)];};
-  const poly=(pts,fill,stroke,lw=1,dash)=>{ctx.beginPath();pts.forEach((p,i)=>{const q=pr(p);i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]);});ctx.closePath();if(fill){ctx.fillStyle=fill;ctx.fill();}if(stroke){ctx.setLineDash(dash||[]);ctx.strokeStyle=stroke;ctx.lineWidth=lw;ctx.stroke();ctx.setLineDash([]);}};
+  const path=pts=>{ctx.beginPath();pts.forEach((p,i)=>{const q=pr(p);i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]);});ctx.closePath();};
+  const poly=(pts,fill,stroke,lw=1,dash)=>{path(pts);if(fill){ctx.fillStyle=fill;ctx.fill();}if(stroke){ctx.setLineDash(dash||[]);ctx.strokeStyle=stroke;ctx.lineWidth=lw;ctx.stroke();ctx.setLineDash([]);}};
   const line=(a,b,c,lw=1,dash)=>{const p=pr(a),q=pr(b);ctx.beginPath();ctx.moveTo(p[0],p[1]);ctx.lineTo(q[0],q[1]);ctx.setLineDash(dash||[]);ctx.strokeStyle=c;ctx.lineWidth=lw;ctx.stroke();ctx.setLineDash([]);};
+  const cell=(to,x0,y0,dx,dy,fill)=>{const a=pr(to(x0,y0)),b=pr(to(x0+dx,y0)),c=pr(to(x0+dx,y0+dy)),d=pr(to(x0,y0+dy));ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.lineTo(c[0],c[1]);ctx.lineTo(d[0],d[1]);ctx.closePath();ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=fill;ctx.lineWidth=0.6;ctx.stroke();};
   const C={floor:css('--floor'),a:css('--wall-a'),b:css('--wall-b'),line:css('--line'),ink2:css('--ink-2'),ink3:css('--ink-3'),sun:css('--sun'),sky:css('--sky')};
-  const F=[
-    {k:'floor',n:[0,0,1],p0:[0,0,0],to:(x,y)=>[x,y,0],dim:[P.L,P.W],col:C.floor},
-    {k:'back',n:[-1,0,0],p0:[P.L,0,0],to:(x,y)=>[P.L,x,y],dim:[P.W,P.H],col:C.b},
-    {k:'left',n:[0,1,0],p0:[0,0,0],to:(x,y)=>[x,0,y],dim:[P.L,P.H],col:C.a},
-    {k:'right',n:[0,-1,0],p0:[0,P.W,0],to:(x,y)=>[x,P.W,y],dim:[P.L,P.H],col:C.a},
-    {k:'win',n:[1,0,0],p0:[0,0,0],to:(x,y)=>[0,x,y],dim:[P.W,P.H],col:C.b},
-  ];
-  const quad=f=>[f.to(0,0),f.to(f.dim[0],0),f.to(f.dim[0],f.dim[1]),f.to(0,f.dim[1])];
+  const floorPts=RG.floor.map(q=>[q[0],q[1],0]);
+  const F=[{k:'floor',n:[0,0,1],p0:[0,0,0],to:(x,y)=>[x,y,0],col:C.floor}];
+  for(const k of ['back','left','right','win']){const wl=RG.walls[k];F.push({k,n:[-wl.o[0],-wl.o[1],0],p0:[wl.a[0],wl.a[1],0],to:(x,y)=>[wl.a[0]+x*wl.e[0],wl.a[1]+x*wl.e[1],y],dim:[wl.len,P.H],col:k==='back'||k==='win'?C.b:C.a});}
+  const quad=fc=>fc.k==='floor'?floorPts:[fc.to(0,0),fc.to(fc.dim[0],0),fc.to(fc.dim[0],fc.dim[1]),fc.to(0,fc.dim[1])];
+  const gs=Math.max(Lr,Wr)>8?1:0.5;
   for(const fc of F){
     const vis=dot(fc.n,sub(cam,fc.p0))>0;
     if(!vis){poly(quad(fc),null,C.ink3,1,[3,4]);continue;}
@@ -637,28 +733,25 @@ function draw3D(){
       for(const pts of [quad(fc),[[0,u0,z0],[0,u0,z1],[0,u1,z1],[0,u1,z0]]]){pts.forEach((p,i)=>{const q=pr(p);i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]);});ctx.closePath();}
       ctx.fillStyle=fc.col;ctx.fill('evenodd');
     } else poly(quad(fc),fc.col,C.line,1);
-    if(fc.k==='floor'){for(let x=0.5;x<P.L-1e-6;x+=0.5)line([x,0,0],[x,P.W,0],alpha(C.ink3,0.18));for(let y=0.5;y<P.W-1e-6;y+=0.5)line([0,y,0],[P.L,y,0],alpha(C.ink3,0.18));}
-    if(LM&&fc.k==='floor'&&!LM.night){const c=LM.c;
-      for(let i=0;i<LM.nx;i++) for(let j=0;j<LM.ny;j++){const val=LM.a[i*LM.ny+j];
-        const x0=i*c,y0=j*c,a=pr(fc.to(x0,y0)),b=pr(fc.to(x0+c,y0)),cc=pr(fc.to(x0+c,y0+c)),d=pr(fc.to(x0,y0+c));
-        ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.lineTo(cc[0],cc[1]);ctx.lineTo(d[0],d[1]);ctx.closePath();ctx.fillStyle=ramp(luxT(val));ctx.fill();ctx.strokeStyle=ctx.fillStyle;ctx.lineWidth=0.6;ctx.stroke();}
+    if(fc.k==='floor'){ctx.save();path(floorPts);ctx.clip();for(let x=gs;x<Lr-1e-6;x+=gs)line([x,0,0],[x,Wr,0],alpha(C.ink3,0.18));for(let y=gs;y<Wr-1e-6;y+=gs)line([0,y,0],[Lr,y,0],alpha(C.ink3,0.18));ctx.restore();}
+    if(LM&&fc.k==='floor'&&!LM.night){const c=LM.c; ctx.save(); path(floorPts); ctx.clip();
+      for(let i=0;i<LM.nx;i++) for(let j=0;j<LM.ny;j++){const val=LM.a[i*LM.ny+j]; if(val<0)continue; cell(fc.to,i*c,j*c,Math.min(c,Lr-i*c),Math.min(c,Wr-j*c),ramp(luxT(val)));}
+      ctx.restore();
     } else if(HT&&HT.g[fc.k]&&HT.max>0){const G=HT.g[fc.k];
-      for(let i=0;i<G.nx;i++) for(let j=0;j<G.ny;j++){const val=G.a[i*G.ny+j]; if(val<=0)continue;
-        const x0=i*CELL,y0=j*CELL,a=pr(fc.to(x0,y0)),b=pr(fc.to(x0+CELL,y0)),c=pr(fc.to(x0+CELL,y0+CELL)),d=pr(fc.to(x0,y0+CELL));
-        ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.lineTo(c[0],c[1]);ctx.lineTo(d[0],d[1]);ctx.closePath();ctx.fillStyle=ramp(val/HT.max);ctx.fill();ctx.strokeStyle=ctx.fillStyle;ctx.lineWidth=0.6;ctx.stroke();}
+      for(let i=0;i<G.nx;i++) for(let j=0;j<G.ny;j++){const val=G.a[i*G.ny+j]; if(val<=0)continue; cell(fc.to,i*CELL,j*CELL,CELL,CELL,ramp(val/HT.max));}
     } else if(!HT&&!LM&&E.pt[fc.k]) for(const p of E.pt[fc.k]) poly(p.map(q=>fc.to(q[0],q[1])),alpha(C.sun,0.9),null);
   }
   // janela, montante, beiral
   poly([[0,u0,z0],[0,u1,z0],[0,u1,z1],[0,u0,z1]],null,C.ink2,1.5);
   {const uc=(u0+u1)/2;
-   if(P.closeL) poly([[0,u0,z0],[0,uc,z0],[0,uc,z1],[0,u0,z1]],alpha(C.ink2,0.75),null);
-   if(P.closeR) poly([[0,uc,z0],[0,u1,z0],[0,u1,z1],[0,uc,z1]],alpha(C.ink2,0.75),null);
+   if(ROOM.leaves&&P.closeL) poly([[0,u0,z0],[0,uc,z0],[0,uc,z1],[0,u0,z1]],alpha(C.ink2,0.75),null);
+   if(ROOM.leaves&&P.closeR) poly([[0,uc,z0],[0,u1,z0],[0,u1,z1],[0,uc,z1]],alpha(C.ink2,0.75),null);
    if(P.mull>0) poly([[0,uc-P.mull/2,z0],[0,uc+P.mull/2,z0],[0,uc+P.mull/2,z1],[0,uc-P.mull/2,z1]],C.ink2,null);}
-  if(P.ohD>0) poly([[-P.wallT,0,zo],[-P.wallT-P.ohD,0,zo],[-P.wallT-P.ohD,P.W,zo],[-P.wallT,P.W,zo]],alpha(C.ink2,0.35),C.ink2,1);
+  if(P.ohD>0) poly([[-P.wallT,0,zo],[-P.wallT-P.ohD,0,zo],[-P.wallT-P.ohD,Wr,zo],[-P.wallT,Wr,zo]],alpha(C.ink2,0.35),C.ink2,1);
   // raios
   if(!HT&&!LM&&E.rects.length){
     for(const r of E.rects) for(const [u,z] of [[r.u0,r.z0],[r.u1,r.z0],[r.u1,r.z1],[r.u0,r.z1]]){
-      let t=Math.min(z/s.U,P.L/s.Ef); if(s.Nr>1e-6)t=Math.min(t,(P.W-u)/s.Nr); if(s.Nr<-1e-6)t=Math.min(t,-u/s.Nr);
+      let t=z/s.U; for(const k of ['back','left','right']){const th=wallHit(RG.walls[k],s,u); if(th!==null&&th>=0) t=Math.min(t,th);}
       line([0,u,z],[s.Ef*t,u+s.Nr*t,z-s.U*t],alpha(C.sun,0.45),1);
     }
   }
@@ -668,56 +761,69 @@ function draw3D(){
     const q=pr(sunPt);ctx.beginPath();ctx.arc(q[0],q[1],8,0,7);ctx.fillStyle=C.sun;ctx.fill();
   }
   // norte
-  const fr=P.facade*rad, nd=[-Math.cos(fr),-Math.sin(fr)], c0=[P.L-0.45,P.W-0.45,0], c1=[c0[0]+0.35*nd[0],c0[1]+0.35*nd[1],0];
-  line(c0,c1,C.ink2,1.5); const q=pr(c1),qq=pr([c0[0]+0.5*nd[0],c0[1]+0.5*nd[1],0]);
+  const fr=P.facade*rad, nd=[-Math.cos(fr),-Math.sin(fr)], ar=Math.max(0.35,Math.max(Lr,Wr)*0.06), c0=[Lr-ar-0.15,Wr-ar-0.15,0], c1=[c0[0]+ar*nd[0],c0[1]+ar*nd[1],0];
+  line(c0,c1,C.ink2,1.5); const q=pr(c1),qq=pr([c0[0]+ar*1.45*nd[0],c0[1]+ar*1.45*nd[1],0]);
   ctx.fillStyle=C.ink2;ctx.font='600 12px '+css('--font-body');ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('N',qq[0],qq[1]);
   ctx.beginPath();ctx.arc(q[0],q[1],2.5,0,7);ctx.fill();
   if(!HT&&(!sunUp||!front)){ctx.fillStyle=C.ink3;ctx.textAlign='left';ctx.textBaseline='top';ctx.font='12px '+css('--font-body');ctx.fillText(sunUp?'Sol atrás da fachada: sem sol direto':'Sol abaixo do horizonte',10,8);}
+  else if(!HT&&sunUp&&front&&E.sp.alt<=P.obs){ctx.fillStyle=C.ink3;ctx.textAlign='left';ctx.textBaseline='top';ctx.font='12px '+css('--font-body');ctx.fillText('Sol atrás dos prédios em frente',10,8);}
 }
 
 /* ---------- Planta rebatida ---------- */
 function drawPlan(){
   const cv=document.getElementById('cPlan'), w0=boxW(cv.parentElement);
-  const {ctx,w,h}=setupCanvas(cv,Math.round(clamp(w0*1.05,260,470)));
-  const X0=-P.H,X1=P.W+P.H,Y0=-P.H,Y1=P.L+P.H,pad=14;
-  const sc=Math.min((w-2*pad)/(X1-X0),(h-2*pad)/(Y1-Y0));
+  const {ctx,w,h}=setupCanvas(cv,Math.round(clamp(w0*1.05,260,520)));
+  const Wl=RG.walls, H=P.H;
+  // transformações: piso (d,u) -> (X=u, Y=d); paredes (s,z) rebatidas para fora
+  const T={floor:(x,y)=>[y,x]};
+  for(const k in Wl){const wl=Wl[k];T[k]=(x,y)=>[wl.a[1]+x*wl.e[1]+y*wl.o[1], wl.a[0]+x*wl.e[0]+y*wl.o[0]];}
+  const D=Object.assign(FACE_DIM(),{win:[Wl.win.len,H]});
+  const corners=k=>k==='floor'?RG.floor.map(q=>T.floor(q[0],q[1])):[T[k](0,0),T[k](D[k][0],0),T[k](D[k][0],D[k][1]),T[k](0,D[k][1])];
+  let X0=1e9,X1=-1e9,Y0=1e9,Y1=-1e9; for(const k in T) for(const q of corners(k)){X0=Math.min(X0,q[0]);X1=Math.max(X1,q[0]);Y0=Math.min(Y0,q[1]);Y1=Math.max(Y1,q[1]);}
+  const pad=14, sc=Math.min((w-2*pad)/(X1-X0),(h-2*pad)/(Y1-Y0));
   const ox=(w-sc*(X1-X0))/2-sc*X0, oy=(h-sc*(Y1-Y0))/2-sc*Y0;
   const S=(X,Y)=>[ox+sc*X,oy+sc*Y];
-  const T={floor:(x,y)=>[y,x],back:(x,y)=>[x,P.L+y],left:(x,y)=>[-y,x],right:(x,y)=>[P.W+y,x],win:(x,y)=>[x,-y]};
-  const D=Object.assign(FACE_DIM(),{win:[P.W,P.H]});
   const C={floor:css('--floor'),a:css('--wall-a'),b:css('--wall-b'),line:css('--line'),ink:css('--ink'),ink2:css('--ink-2'),ink3:css('--ink-3'),sun:css('--sun'),sky:css('--sky')};
   const col={floor:C.floor,back:C.b,left:C.a,right:C.a,win:C.b};
-  const rectFace=(k,x0,y0,x1,y1,fill)=>{const a=S(...T[k](x0,y0)),b=S(...T[k](x1,y1));ctx.fillStyle=fill;ctx.fillRect(Math.min(a[0],b[0]),Math.min(a[1],b[1]),Math.abs(b[0]-a[0])+0.4,Math.abs(b[1]-a[1])+0.4);};
-  for(const k in D){rectFace(k,0,0,D[k][0],D[k][1],col[k]);}
+  const pathXY=pts=>{ctx.beginPath();pts.forEach((q,i)=>{const p=S(q[0],q[1]);i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]);});ctx.closePath();};
+  const quadFace=(k,x0,y0,x1,y1,fill,grow)=>{pathXY([T[k](x0,y0),T[k](x1,y0),T[k](x1,y1),T[k](x0,y1)]);ctx.fillStyle=fill;ctx.fill();if(grow){ctx.strokeStyle=fill;ctx.lineWidth=0.6;ctx.stroke();}};
+  for(const k in T){pathXY(corners(k));ctx.fillStyle=col[k];ctx.fill();}
   // janela
-  const u0=(P.W-P.ww)/2,u1=u0+P.ww;
-  rectFace('win',u0,P.sill,u1,P.sill+P.wh,C.sky);
-  if(P.closeL) rectFace('win',u0,P.sill,P.W/2,P.sill+P.wh,alpha(C.ink2,0.75));
-  if(P.closeR) rectFace('win',P.W/2,P.sill,u1,P.sill+P.wh,alpha(C.ink2,0.75));
-  if(P.mull>0) rectFace('win',P.W/2-P.mull/2,P.sill,P.W/2+P.mull/2,P.sill+P.wh,C.ink2);
+  const [u0,u1]=winU(), uc=(u0+u1)/2;
+  quadFace('win',u0,P.sill,u1,P.sill+P.wh,C.sky);
+  if(ROOM.leaves&&P.closeL) quadFace('win',u0,P.sill,uc,P.sill+P.wh,alpha(C.ink2,0.75));
+  if(ROOM.leaves&&P.closeR) quadFace('win',uc,P.sill,u1,P.sill+P.wh,alpha(C.ink2,0.75));
+  if(P.mull>0) quadFace('win',uc-P.mull/2,P.sill,uc+P.mull/2,P.sill+P.wh,C.ink2);
   const mode=state.mode, HT=getHeat(), g=HT&&HT.g, max=HT?HT.max:0;
   if(g){
     if(max>0) for(const k in g){const G=g[k];
-      for(let i=0;i<G.nx;i++) for(let j=0;j<G.ny;j++){const v=G.a[i*G.ny+j]; if(v<=0)continue; rectFace(k,i*CELL,j*CELL,(i+1)*CELL,(j+1)*CELL,ramp(v/max));}
+      for(let i=0;i<G.nx;i++) for(let j=0;j<G.ny;j++){const v=G.a[i*G.ny+j]; if(v<=0)continue; quadFace(k,i*CELL,j*CELL,(i+1)*CELL,(j+1)*CELL,ramp(v/max),1);}
     }
   } else if(mode==='lux'){
     const LM=getLuxMap();
-    if(!LM.night) for(let i=0;i<LM.nx;i++) for(let j=0;j<LM.ny;j++) rectFace('floor',i*LM.c,j*LM.c,(i+1)*LM.c,(j+1)*LM.c,ramp(luxT(LM.a[i*LM.ny+j])));
+    if(!LM.night){ctx.save(); pathXY(corners('floor')); ctx.clip(); for(let i=0;i<LM.nx;i++) for(let j=0;j<LM.ny;j++){const v=LM.a[i*LM.ny+j]; if(v<0)continue; quadFace('floor',i*LM.c,j*LM.c,Math.min((i+1)*LM.c,RG.L),Math.min((j+1)*LM.c,RG.W),ramp(luxT(v)),1);} ctx.restore();}
   } else {
-    for(const k in E.pt) for(const p of E.pt[k]){ctx.beginPath();p.forEach((q,i)=>{const s=S(...T[k](q[0],q[1]));i?ctx.lineTo(s[0],s[1]):ctx.moveTo(s[0],s[1]);});ctx.closePath();ctx.fillStyle=alpha(C.sun,0.92);ctx.fill();}
+    for(const k in E.pt) for(const p of E.pt[k]){pathXY(p.map(q=>T[k](q[0],q[1])));ctx.fillStyle=alpha(C.sun,0.92);ctx.fill();}
   }
   // grade do piso e contornos
+  const gs=Math.max(RG.L,RG.W)>8?1:0.5;
+  ctx.save(); pathXY(corners('floor')); ctx.clip();
   ctx.strokeStyle=alpha(C.ink3,0.22);ctx.lineWidth=1;
-  for(let x=0.5;x<P.L-1e-6;x+=0.5){const a=S(0,x),b=S(P.W,x);ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();}
-  for(let y=0.5;y<P.W-1e-6;y+=0.5){const a=S(y,0),b=S(y,P.L);ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();}
+  for(let x=gs;x<RG.L-1e-6;x+=gs){const a=S(0,x),b=S(RG.W,x);ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();}
+  for(let y=gs;y<RG.W-1e-6;y+=gs){const a=S(y,0),b=S(y,RG.L);ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();}
+  ctx.restore();
   ctx.strokeStyle=C.ink3;ctx.lineWidth=1;
-  for(const k in D){const a=S(...T[k](0,0)),b=S(...T[k](D[k][0],D[k][1]));ctx.strokeRect(Math.min(a[0],b[0]),Math.min(a[1],b[1]),Math.abs(b[0]-a[0]),Math.abs(b[1]-a[1]));}
-  {const a=S(...T.win(u0,P.sill)),b=S(...T.win(u1,P.sill+P.wh));ctx.strokeStyle=C.ink2;ctx.lineWidth=1.5;ctx.strokeRect(a[0],b[1],b[0]-a[0],a[1]-b[1]);}
+  for(const k in T){pathXY(corners(k));ctx.stroke();}
+  pathXY([T.win(u0,P.sill),T.win(u1,P.sill),T.win(u1,P.sill+P.wh),T.win(u0,P.sill+P.wh)]);ctx.strokeStyle=C.ink2;ctx.lineWidth=1.5;ctx.stroke();
+  // pontos de referência da luz natural
+  if(mode==='lux'){ctx.fillStyle=C.ink;ctx.font='11px '+css('--font-body');ctx.textAlign='left';ctx.textBaseline='middle';
+    for(const [n,d,u] of refPts()){const p=S(u,d);ctx.beginPath();ctx.arc(p[0],p[1],3.5,0,7);ctx.fill();ctx.fillText(n,p[0]+6,p[1]);}}
   // rótulos
   const N=faceNames(); ctx.fillStyle=C.ink2; ctx.font='11px '+css('--font-body'); ctx.textAlign='center'; ctx.textBaseline='middle';
-  const lab=(t,X,Y,rot)=>{const s=S(X,Y);ctx.save();ctx.translate(s[0],s[1]);if(rot)ctx.rotate(rot);ctx.fillText(t,0,0);ctx.restore();};
-  lab(N.win,P.W/2,-P.H+0.22); lab(N.back,P.W/2,P.L+P.H-0.22); lab(N.left,-P.H+0.22,P.L/2,-Math.PI/2); lab(N.right,P.W+P.H-0.22,P.L/2,Math.PI/2);
-  ctx.font='600 12px '+css('--font-body'); ctx.fillStyle=C.ink; lab('Piso '+nf(P.W)+' × '+nf(P.L)+' m',P.W/2,P.L-0.2);
+  for(const k of ['win','back','left','right']){const wl=Wl[k], p=S(...T[k](wl.len/2,H-0.22*H/2.7)); let ang=Math.atan2(wl.e[0],wl.e[1]); if(ang>Math.PI/2)ang-=Math.PI; if(ang<-Math.PI/2)ang+=Math.PI;
+    ctx.save();ctx.translate(p[0],p[1]);ctx.rotate(ang);ctx.fillText(N[k],0,0);ctx.restore();}
+  ctx.font='600 12px '+css('--font-body'); ctx.fillStyle=C.ink;
+  if(mode!=='lux'){const p=S((RG.uL+RG.W)/2,RG.L-0.2*Math.max(1,RG.L/4.2)); ctx.fillText(RG.Wb===RG.W?'Piso '+nf(RG.W)+' × '+nf(RG.L)+' m':'Piso '+nf(RG.area,1)+' m²',p[0],p[1]);}
   // legenda
   const lg=document.getElementById('planLegend');
   if(mode==='lux') lg.innerHTML=getLuxMap().night?'<span>noite: sem luz natural</span>':luxLegend(' · '+fmtDate(state.doy)+', '+fmtTime(state.minute)+' · plano a '+nf(LX.hwp)+' m');
@@ -791,18 +897,18 @@ let dayLuxGeom=null;
 function drawDayLux(){
   const cv=document.getElementById('cDayLux'), narrow=boxW(cv.parentElement)<520, {ctx,w,h}=setupCanvas(cv,narrow?210:240);
   const m={l:narrow?44:52,r:10,t:10,b:24}, pw=w-m.l-m.r, ph=h-m.t-m.b, D=getDayLux(state.doy), dd=ANN.days[state.doy-1];
-  const cols=[css('--lx-1'),css('--lx-2'),css('--lx-3')], ink2=css('--ink-2'),ink3=css('--ink-3'),ink=css('--ink'),sun=css('--sun');
-  const names=refPts().map(([n,d])=>n+' ('+nf(d,1)+' m)');
+  const cols=[css('--lx-1'),css('--lx-2'),css('--lx-3'),css('--ink-3')], ink2=css('--ink-2'),ink3=css('--ink-3'),ink=css('--ink'),sun=css('--sun');
+  const names=refPts().map(([n,d])=>n+' ('+nf(d,1)+' m da janela)');
   document.getElementById('dayLuxLeg').innerHTML=names.map((n,i)=>'<span><i style="background:'+cols[i]+'"></i>'+n+'</span>').join('')+(dd.first!==null?'<span><i class="band"></i>sol direto entrando</span>':'');
   document.getElementById('dayLuxSub').textContent=fmtDate(state.doy)+' · céu '+(SKY==='clear'?'limpo':'nublado');
   if(!D.t.length){dayLuxGeom=null;return;}
   const tA=D.t[0]-10, tB=D.t[D.t.length-1]+10, X=t=>m.l+(t-tA)/(tB-tA)*pw;
   let vmax=0; for(const sr of D.v) for(const x of sr) vmax=Math.max(vmax,x);
   const lo=10, hi=Math.pow(10,Math.max(3,Math.ceil(Math.log10(vmax*1.05)))), Y=v=>m.t+ph-(Math.log10(Math.max(v,lo))-1)/(Math.log10(hi)-1)*ph;
-  if(dd.first!==null){ctx.fillStyle=alpha(sun,0.13);ctx.fillRect(X(dd.first),m.t,X(dd.last+STEP)-X(dd.first),ph);}
+  ctx.fillStyle=alpha(sun,0.13); for(let r=0;r<ROWS;r++){if(ANN.total[(state.doy-1)*ROWS+r]>0){const t=T0+r*STEP; ctx.fillRect(X(t),m.t,X(t+STEP)-X(t)+0.5,ph);}}
   ctx.font='11px '+css('--font-mono'); ctx.textAlign='right'; ctx.textBaseline='middle';
   for(let e=1;Math.pow(10,e)<=hi;e++){for(const k of [1,3]){const v=k*Math.pow(10,e); if(v>hi)continue; const y=Y(v); ctx.fillStyle=alpha(ink3,k===1?(e===1?0.5:0.25):0.12); ctx.fillRect(m.l,Math.round(y),pw,1); ctx.fillStyle=ink2; ctx.fillText(v>=1000?(v/1000)+' mil':String(v),m.l-6,y);}}
-  {const y=Y(300); ctx.strokeStyle=alpha(ink2,0.7); ctx.setLineDash([5,4]); ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(m.l,y); ctx.lineTo(m.l+pw,y); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle=ink2; ctx.textAlign='left'; ctx.textBaseline='top'; ctx.fillText('300 lx · leitura',m.l+(dd.first!==null?X(dd.last+STEP)-m.l+6:6),y+3);}
+  {const y=Y(300); ctx.strokeStyle=alpha(ink2,0.7); ctx.setLineDash([5,4]); ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(m.l,y); ctx.lineTo(m.l+pw,y); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle=ink2; ctx.textAlign='left'; ctx.textBaseline='top'; ctx.fillText('300 lx · leitura',m.l+6,y+3);}
   ctx.textAlign='center'; ctx.textBaseline='top'; ctx.fillStyle=ink2;
   for(let t=Math.ceil(tA/60)*60;t<=tB;t+=60){ if(narrow&&(t/60)%2)continue; ctx.fillText(String(t/60).padStart(2,'0')+'h',X(t),m.t+ph+6);}
   D.v.forEach((sr,i)=>{ctx.beginPath(); sr.forEach((v,k)=>{const x=X(D.t[k]),y=Y(v); k?ctx.lineTo(x,y):ctx.moveTo(x,y);}); ctx.strokeStyle=cols[i]; ctx.lineWidth=2; ctx.lineJoin='round'; ctx.stroke();});
@@ -821,7 +927,7 @@ function updateTiles(){
     {now:1,k:'Área iluminada agora',v:nf(e.tot)+' m²',d:'piso '+nf(e.ar.floor)+' m² · '+walls},
     {now:1,k:'Alcance no piso agora',v:e.ar.floor>0?nf(e.depth)+' m':'—',d:'a partir da parede da janela'},
     {now:1,k:'Potência direta agora',v:nf(e.power,0)+' W',d:'céu limpo, abertura efetiva '+nf(e.Aeff*1e4/1e4,2)+' m²'},
-    (()=>{const p=luxPoints(state.doy,state.minute); return {now:1,k:'Luz natural · centro',v:p?fmtLux(p[1])+' lx':'—',d:p?'janela '+fmtLux(p[0])+' · fundo '+fmtLux(p[2])+' lx · céu '+(SKY==='clear'?'limpo':'nublado'):'sol abaixo do horizonte'};})(),
+    (()=>{const p=luxPoints(state.doy,state.minute), rp=refPts(), mid=Math.min(1,rp.length-1); return {now:1,k:'Luz natural · '+rp[mid][0],v:p?fmtLux(p[mid])+' lx':'—',d:p?rp.map((r,i)=>i===mid?null:r[0]+' '+fmtLux(p[i])).filter(Boolean).join(' · ')+' lx · céu '+(SKY==='clear'?'limpo':'nublado'):'sol abaixo do horizonte'};})(),
     {k:'Sol direto em '+fmtDate(state.doy),v:dd.hours>0?nf(dd.hours,1)+' h':'0 h',d:dd.first!==null?'das '+fmtTime(dd.first)+' às '+fmtTime(dd.last+STEP):'sem sol direto neste dia'},
     {k:'Energia direta no dia',v:nf(dd.kwh,2)+' kWh',d:'maior mancha no piso '+nf(dd.maxF)+' m², alcance '+nf(dd.maxD)+' m'},
   ];
@@ -833,18 +939,54 @@ function renderAll(){readRamp(); leafLabels(); syncTimeRange(); renderInstant();
 
 function readParams(){
   const g=id=>parseFloat(document.getElementById(id).value);
-  LX.tau=g('pTau')/100; LX.rf=g('pRf')/100; LX.rw=g('pRw')/100; LX.rc=g('pRc')/100; LX.hwp=g('pHwp');
-  const np={W:g('pW'),L:g('pL'),H:g('pH'),ww:g('pWW'),wh:g('pWH'),sill:g('pSill'),mull:g('pMull')/100,wallT:g('pWallT')/100,ohD:g('pOhD')/100,ohOff:g('pOhOff')/100,facade:g('pFac'),lat:g('pLat'),lon:g('pLon')};
+  const nl={tau:g('pTau')/100,rf:g('pRf')/100,rw:g('pRw')/100,rc:g('pRc')/100,hwp:g('pHwp')};
+  const np={W:g('pW'),L:g('pL'),wb:g('pWb'),H:g('pH'),ww:g('pWW'),wOff:g('pWOff'),wh:g('pWH'),sill:g('pSill'),mull:g('pMull')/100,wallT:g('pWallT')/100,ohD:g('pOhD')/100,ohOff:g('pOhOff')/100,facade:g('pFac'),lat:g('pLat'),lon:g('pLon'),obs:g('pObs')};
   const err=document.getElementById('err');
-  if(Object.values(np).some(v=>!isFinite(v))){err.textContent='Preencha todos os campos com números.';return false;}
-  if(np.ww>np.W){err.textContent='A janela é mais larga que a parede. Reduza a largura da janela.';return false;}
+  if(Object.values(np).some(v=>!isFinite(v))||Object.values(nl).some(v=>!isFinite(v))){err.textContent='Preencha todos os campos com números.';return false;}
+  if(np.wOff+np.ww>np.W+1e-9){err.textContent='A janela passa do fim da parede. Reduza a largura da janela ou a distância do canto.';return false;}
+  if(np.wb>np.W||np.wb<0.5){err.textContent='A parede do fundo deve ter entre 0,5 m e a largura da parede da janela.';return false;}
   if(np.sill+np.wh>np.H){err.textContent='Peitoril + altura da janela passa do pé-direito. Ajuste um dos dois.';return false;}
   if(np.mull>=np.ww){err.textContent='O montante central precisa ser menor que a janela.';return false;}
-  if(![LX.tau,LX.rf,LX.rw,LX.rc,LX.hwp].every(isFinite)){err.textContent='Preencha os campos de luz natural com números.';return false;}
-  if(LX.hwp>=np.sill){err.textContent='O plano de leitura precisa ficar abaixo do peitoril.';return false;}
+  if(nl.hwp<0||nl.hwp>=np.H){err.textContent='O plano de leitura precisa ficar entre o piso e o teto.';return false;}
+  if(np.obs<0||np.obs>80){err.textContent='Use uma altura angular dos prédios entre 0° e 80°.';return false;}
   if(Math.abs(np.lat)>66){err.textContent='Use uma latitude entre −66° e 66°.';return false;}
-  err.textContent=''; Object.assign(P,np); return true;
+  err.textContent=''; Object.assign(P,np); Object.assign(LX,nl); roomGeo(); CELL=clamp(Math.max(P.L,P.W)/90,0.05,0.15); saveRooms(); return true;
 }
+/* ---------- Cômodos ---------- */
+const ROOMS={
+  valinhos:{sub:'Janela a leste em Valinhos (SP) · sol direto e luz natural ao longo de 2026',leaves:true,refs:null,
+    P:{W:3,L:4.2,wb:3,H:2.7,ww:1.2,wOff:0.9,wh:0.9,sill:1.1,mull:0.05,wallT:0.15,ohD:0.25,ohOff:0,facade:90,lat:-22.9706,lon:-46.9958,obs:0,closeL:false,closeR:false},
+    LX:{tau:0.75,rf:0.3,rw:0.6,rc:0.8,hwp:0.75}},
+  sp:{sub:'Loft de 85 m² com a sacada envidraçada (5,90 m) voltada a SSE · Brooklin, São Paulo',leaves:false,
+    refs:[['sofá',1.7,4.2],['mesa de jantar',5.9,2.4],['cama da suíte',12.1,3.2]],
+    P:{W:5.95,L:13.55,wb:3.9,H:3.5,ww:5.9,wOff:0.03,wh:3.32,sill:0,mull:0,wallT:0.1,ohD:0,ohOff:0,facade:157.5,lat:-23.608,lon:-46.693,obs:0,closeL:false,closeR:false},
+    LX:{tau:0.78,rf:0.3,rw:0.6,rc:0.8,hwp:0.75}}
+};
+const ROOM_DEFAULTS=JSON.parse(JSON.stringify(ROOMS));
+let ROOM_ID='valinhos', ROOM=ROOMS.valinhos;
+function saveRooms(){ROOM.P=Object.assign({},ROOM.P,pickP()); ROOM.LX=Object.assign({},LX); try{localStorage.setItem('insol-rooms-v1',JSON.stringify({id:ROOM_ID,rooms:{valinhos:{P:ROOMS.valinhos.P,LX:ROOMS.valinhos.LX},sp:{P:ROOMS.sp.P,LX:ROOMS.sp.LX}}}));}catch(_){}}
+function pickP(){const o={};for(const k in ROOM_DEFAULTS[ROOM_ID].P) o[k]=P[k];return o;}
+function loadRooms(){try{const j=JSON.parse(localStorage.getItem('insol-rooms-v1')||'null'); if(!j)return; for(const k in j.rooms) if(ROOMS[k]){Object.assign(ROOMS[k].P,j.rooms[k].P);Object.assign(ROOMS[k].LX,j.rooms[k].LX);} if(ROOMS[j.id]) ROOM_ID=j.id;}catch(_){}}
+function fillInputs(){
+  const set=(id,v)=>{document.getElementById(id).value=+(+v).toFixed(4);};
+  const p=ROOM.P,l=ROOM.LX;
+  set('pW',p.W);set('pL',p.L);set('pWb',p.wb);set('pH',p.H);set('pWW',p.ww);set('pWOff',p.wOff);set('pWH',p.wh);set('pSill',p.sill);set('pMull',p.mull*100);set('pWallT',p.wallT*100);
+  set('pOhD',p.ohD*100);set('pOhOff',p.ohOff*100);set('pFac',p.facade);set('pLat',p.lat);set('pLon',p.lon);set('pObs',p.obs);
+  set('pTau',l.tau*100);set('pRf',l.rf*100);set('pRw',l.rw*100);set('pRc',l.rc*100);set('pHwp',l.hwp);
+  document.querySelectorAll('[data-leaf]').forEach(b=>b.classList.toggle('on',(b.dataset.v==='1')===!!p['close'+b.dataset.leaf]));
+  document.querySelectorAll('.leaf,.leafnote').forEach(el=>el.hidden=!ROOM.leaves); document.getElementById('noLeaves').hidden=ROOM.leaves;
+  document.querySelector('[data-tab="janela"]').textContent=ROOM.leaves?'Folhas':'Janela';
+  document.getElementById('roomSub').textContent=ROOM.sub;
+  document.querySelectorAll('[data-room]').forEach(b=>{const on=b.dataset.room===ROOM_ID;b.classList.toggle('on',on);b.setAttribute('aria-selected',on);});
+}
+function selectRoom(id){
+  ROOM_ID=id; ROOM=ROOMS[id]; Object.assign(P,{closeL:false,closeR:false},ROOM.P); Object.assign(LX,ROOM.LX);
+  fillInputs(); if(!readParams()) return;
+  luxVer++; ANN=computeAnnual(); dayHeat=null; yearHeat=null; luxMapC=null; dayLuxC=null;
+  const rp=refPts(); document.getElementById('optLux').textContent='Luz natural difusa · '+rp[Math.min(1,rp.length-1)][0]+' (lux)';
+  renderAll();
+}
+document.querySelectorAll('[data-room]').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.room!==ROOM_ID){stopPlay(); selectRoom(b.dataset.room);}}));
 let pTimer=null;
 function onParams(){clearTimeout(pTimer); pTimer=setTimeout(()=>{if(!readParams())return; luxVer++; ANN=computeAnnual(); dayHeat=null; yearHeat=null; renderAll();},180);}
 document.querySelectorAll('aside input').forEach(i=>i.addEventListener('input',onParams));
@@ -867,7 +1009,7 @@ document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()
   document.querySelectorAll('[data-tab]').forEach(x=>{const on=x===b;x.classList.toggle('on',on);x.setAttribute('aria-selected',on);document.getElementById('tab-'+x.dataset.tab).hidden=!on;});
 }));
 document.querySelectorAll('[data-leaf]').forEach(b=>b.addEventListener('click',()=>{
-  const k='close'+b.dataset.leaf, v=b.dataset.v==='1'; if(P[k]===v) return; P[k]=v;
+  const k='close'+b.dataset.leaf, v=b.dataset.v==='1'; if(P[k]===v) return; P[k]=v; ROOM.P[k]=v; saveRooms();
   document.querySelectorAll('[data-leaf="'+b.dataset.leaf+'"]').forEach(x=>x.classList.toggle('on',x===b));
   luxVer++; ANN=computeAnnual(); dayHeat=null; yearHeat=null; renderAll();
 }));
@@ -927,7 +1069,7 @@ let rT=null, lastW=window.innerWidth; window.addEventListener('resize',()=>{clea
 try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',renderAll);}catch(_){}
 new MutationObserver(renderAll).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
 
-readParams(); ANN=computeAnnual(); renderAll(); stickyOffset();
+loadRooms(); selectRoom(ROOM_ID); stickyOffset();
 if('serviceWorker' in navigator && location.hostname.endsWith('github.io')){try{navigator.serviceWorker.register('sw.js').catch(()=>{});}catch(_){}}
 </script>
 </body>
