@@ -1,6 +1,6 @@
 # Insolação do cômodo
 
-Simulador de sol direto num cômodo de 3,00 × 4,20 m com janela de 1,20 × 0,90 m voltada a leste (90°, Norte verdadeiro) em Valinhos (SP), com beiral de 25 cm.
+Simulador de sol direto e luz natural em dois cômodos: quarto com janela a leste em Valinhos (SP) e loft de 85 m² com sacada envidraçada voltada a SSE no Brooklin (São Paulo).
 
 - Vista 3D e planta rebatida, cada uma com os modos agora, dia e ano
 - Mapa anual dia × hora (área iluminada, área no piso ou potência)
