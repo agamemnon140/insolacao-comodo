@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Insolação do cômodo</title>
+<meta name="description" content="Simulador de sol direto num cômodo com janela a leste em Valinhos (SP), ao longo do ano.">
+<meta name="theme-color" content="#141820">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Insolação">
+<meta property="og:title" content="Insolação do cômodo">
+<meta property="og:image" content="icon-512.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600&display=swap" rel="stylesheet">
+<style>
+/* Layout: painel de parâmetros à esquerda, área de análise à direita (vistas → mapa anual → séries diárias). */
+:root{
+  --bg:#eceff3; --surface:#ffffff; --surface-2:#e2e6ec; --ink:#141820; --ink-2:#4c5462; --ink-3:#7b8392; --line:#d3d8e0;
+  --sun:#ec8a06; --sun-ink:#9a5200; --sun-soft:rgba(236,138,6,.16);
+  --floor:#e6e9ee; --wall-a:#d7dce4; --wall-b:#cdd3dd; --sky:#f6f8fb;
+  --seq-0:#fdf0d5; --seq-1:#fcd892; --seq-2:#f8bb4f; --seq-3:#f09a22; --seq-4:#d9770c; --seq-5:#ad5609; --seq-6:#743806;
+  --font-display:"IBM Plex Sans Condensed","IBM Plex Sans",system-ui,sans-serif;
+  --font-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1216; --surface:#181c22; --surface-2:#232832; --ink:#eceef2; --ink-2:#a9b0bc; --ink-3:#7a8290; --line:#2d333d;
+    --sun:#f6a623; --sun-ink:#fbc366; --sun-soft:rgba(246,166,35,.16);
+    --floor:#2a3039; --wall-a:#323943; --wall-b:#39414c; --sky:#1d222a;
+    --seq-0:#3b2810; --seq-1:#68420f; --seq-2:#985f0f; --seq-3:#c97f12; --seq-4:#eda02b; --seq-5:#fbc366; --seq-6:#ffe3a8;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1216; --surface:#181c22; --surface-2:#232832; --ink:#eceef2; --ink-2:#a9b0bc; --ink-3:#7a8290; --line:#2d333d;
+  --sun:#f6a623; --sun-ink:#fbc366; --sun-soft:rgba(246,166,35,.16);
+  --floor:#2a3039; --wall-a:#323943; --wall-b:#39414c; --sky:#1d222a;
+  --seq-0:#3b2810; --seq-1:#68420f; --seq-2:#985f0f; --seq-3:#c97f12; --seq-4:#eda02b; --seq-5:#fbc366; --seq-6:#ffe3a8;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:14px/1.45 var(--font-body);}
+.wrap{max-width:1360px;margin:0 auto;padding:20px 20px 40px;display:grid;grid-template-columns:268px minmax(0,1fr);gap:20px}
+header{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 18px}
+h1{font:600 26px/1.1 var(--font-display);letter-spacing:.2px;margin:0;text-wrap:balance}
+.sub{color:var(--ink-2)}
+h2{font:600 15px/1.2 var(--font-display);letter-spacing:.3px;margin:0;text-transform:uppercase;color:var(--ink-2)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px}
+aside{display:flex;flex-direction:column;gap:12px;align-self:start;position:sticky;top:12px}
+fieldset{border:0;margin:0;padding:0;display:grid;gap:7px}
+legend{font:600 12px var(--font-display);text-transform:uppercase;letter-spacing:.6px;color:var(--ink-3);margin-bottom:4px;padding:0}
+.f{display:grid;grid-template-columns:1fr 82px;align-items:center;gap:8px}
+.f label{color:var(--ink-2);font-size:13px}
+.f label .est{display:inline-block;margin-left:5px;font-size:10px;padding:0 5px;border-radius:8px;background:var(--sun-soft);color:var(--sun-ink);vertical-align:1px}
+input[type=number]{width:100%;font:13px var(--font-mono);color:var(--ink);background:var(--surface-2);border:1px solid transparent;border-radius:6px;padding:4px 6px;text-align:right}
+input[type=number]:focus-visible,button:focus-visible,select:focus-visible,input[type=range]:focus-visible{outline:2px solid var(--sun);outline-offset:1px}
+.err{color:#c43b3b;font-size:12px;min-height:0}
+main{display:flex;flex-direction:column;gap:16px;min-width:0}
+.ctl{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px 22px}
+.sl{display:grid;gap:4px}
+.sl .top{display:flex;justify-content:space-between;align-items:baseline}
+.sl .val{font:500 18px var(--font-mono);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--sun)}
+.row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+button,select{font:13px var(--font-body);color:var(--ink);background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:5px 10px;cursor:pointer}
+button:hover,select:hover{border-color:var(--ink-3)}
+button.on{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+button.play{min-width:84px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:grid;gap:2px}
+.tile .k{font-size:12px;color:var(--ink-3)}
+.tile .v{font:500 20px var(--font-mono);font-variant-numeric:tabular-nums}
+.tile .d{font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.tile.now{border-left:3px solid var(--sun)}
+.views{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+.vhead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+.hint{font-size:12px;color:var(--ink-3)}
+canvas{display:block;touch-action:none}
+#c3d{cursor:grab}
+#c3d:active{cursor:grabbing}
+.legend{display:flex;align-items:center;gap:8px;font:12px var(--font-mono);color:var(--ink-2);margin-top:8px}
+.legend .bar{flex:0 1 220px;height:10px;border-radius:5px}
+.legend .sw{width:14px;height:10px;border-radius:3px;background:var(--sun)}
+.charts{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+.tip{position:fixed;pointer-events:none;background:var(--ink);color:var(--surface);font:12px/1.4 var(--font-mono);padding:6px 8px;border-radius:6px;opacity:0;transition:opacity .08s;z-index:9;white-space:nowrap}
+.notes{color:var(--ink-2);font-size:13px;max-width:80ch}
+.notes ul{margin:6px 0 0;padding-left:18px;display:grid;gap:3px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+.seg button{border:0;border-radius:0;background:var(--surface-2)}
+.seg button.on{background:var(--ink);color:var(--surface)}
+.tabbar{display:flex;margin:-2px 0 14px}
+.tabbar button{flex:1}
+.tabpane{display:grid;gap:16px}
+.tabpane[hidden]{display:none}
+.leaf{display:grid;gap:6px}
+.leaf .lt{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.leaf .lt b{font-weight:600}
+.leaf .lt span{font-size:12px;color:var(--ink-3)}
+.leaf .seg{display:flex}
+.leaf .seg button{flex:1}
+.leaf .seg button.closed.on{background:var(--ink-2);border-color:var(--ink-2)}
+.modebar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
+.modebar .legend{margin-top:0;flex:1 1 280px;justify-content:flex-end}
+.modebar .legend span{white-space:nowrap}
+@media (max-width:980px){
+  .wrap{grid-template-columns:1fr}
+  aside{position:static}
+  .views,.charts,.ctl{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion: reduce){ .tip{transition:none} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Insolação do cômodo</h1>
+    <span class="sub">Janela voltada a leste em Valinhos (SP) · sol direto que entra pela janela, dia a dia, ao longo de 2026</span>
+  </header>
+
+  <aside>
+    <div class="card">
+      <div class="seg tabbar" role="tablist" aria-label="Configuração">
+        <button type="button" role="tab" data-tab="janela" class="on" aria-selected="true">Folhas</button>
+        <button type="button" role="tab" data-tab="medidas" aria-selected="false">Medidas e local</button>
+      </div>
+      <div class="tabpane" id="tab-janela" role="tabpanel">
+        <div class="leaf">
+          <div class="lt"><b>Folha esquerda</b><span id="lblL">lado norte</span></div>
+          <div class="seg" role="group" aria-label="Folha esquerda">
+            <button type="button" data-leaf="L" data-v="0" class="on">Aberta</button>
+            <button type="button" data-leaf="L" data-v="1" class="closed">Fechada</button>
+          </div>
+        </div>
+        <div class="leaf">
+          <div class="lt"><b>Folha direita</b><span id="lblR">lado sul</span></div>
+          <div class="seg" role="group" aria-label="Folha direita">
+            <button type="button" data-leaf="R" data-v="0" class="on">Aberta</button>
+            <button type="button" data-leaf="R" data-v="1" class="closed">Fechada</button>
+          </div>
+        </div>
+        <p class="hint" style="margin:0">Esquerda e direita para quem está dentro do cômodo olhando pela janela. Folha fechada bloqueia o sol, como uma veneziana ou folha cega.</p>
+      </div>
+      <div class="tabpane" id="tab-medidas" role="tabpanel" hidden>
+        <fieldset>
+          <legend>Cômodo</legend>
+          <div class="f"><label for="pW">Largura (parede da janela), m</label><input id="pW" type="number" step="0.05" min="1" value="3"></div>
+          <div class="f"><label for="pL">Profundidade, m</label><input id="pL" type="number" step="0.05" min="1" value="4.2"></div>
+          <div class="f"><label for="pH">Pé-direito, m<span class="est">estimado</span></label><input id="pH" type="number" step="0.05" min="2" value="2.7"></div>
+        </fieldset>
+        <fieldset>
+          <legend>Janela (2 folhas, centralizada)</legend>
+          <div class="f"><label for="pWW">Largura, m</label><input id="pWW" type="number" step="0.05" min="0.2" value="1.2"></div>
+          <div class="f"><label for="pWH">Altura, m</label><input id="pWH" type="number" step="0.05" min="0.2" value="0.9"></div>
+          <div class="f"><label for="pSill">Peitoril (piso → base), m<span class="est">estimado</span></label><input id="pSill" type="number" step="0.05" min="0" value="1.1"></div>
+          <div class="f"><label for="pMull">Montante central, cm<span class="est">estimado</span></label><input id="pMull" type="number" step="1" min="0" value="5"></div>
+          <div class="f"><label for="pWallT">Espessura da parede, cm<span class="est">estimado</span></label><input id="pWallT" type="number" step="1" min="0" value="15"></div>
+        </fieldset>
+        <fieldset>
+          <legend>Beiral</legend>
+          <div class="f"><label for="pOhD">Projeção, cm</label><input id="pOhD" type="number" step="1" min="0" value="25"></div>
+          <div class="f"><label for="pOhOff">Altura acima do topo da janela, cm<span class="est">estimado</span></label><input id="pOhOff" type="number" step="1" min="0" value="0"></div>
+        </fieldset>
+        <fieldset>
+          <legend>Orientação e local</legend>
+          <div class="f"><label for="pFac">Azimute da fachada, ° (Norte verdadeiro)</label><input id="pFac" type="number" step="1" min="0" max="360" value="90"></div>
+          <div class="f"><label for="pLat">Latitude, °</label><input id="pLat" type="number" step="0.0001" value="-22.9706"></div>
+          <div class="f"><label for="pLon">Longitude, °</label><input id="pLon" type="number" step="0.0001" value="-46.9958"></div>
+        </fieldset>
+      </div>
+      <div class="err" id="err" role="alert"></div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="card">
+      <div class="ctl">
+        <div class="sl">
+          <div class="top"><label for="sDay">Data</label><span class="val" id="vDay">31 out</span></div>
+          <input id="sDay" type="range" min="1" max="365" step="1" value="304">
+          <div class="row" style="margin-top:4px">
+            <button data-doy="355" type="button">Solstício de verão · 21 dez</button>
+            <button data-doy="79" type="button">Equinócio · 20 mar</button>
+            <button data-doy="172" type="button">Solstício de inverno · 21 jun</button>
+            <button data-doy="304" type="button">Hoje</button>
+          </div>
+        </div>
+        <div class="sl">
+          <div class="top"><label for="sMin">Hora (UTC−3)</label><span class="val" id="vMin">08:00</span></div>
+          <input id="sMin" type="range" min="240" max="1200" step="1" value="480">
+          <div class="row" style="margin-top:4px">
+            <button id="bPlay" class="play" type="button">▶ Animar dia</button>
+            <span class="hint" id="sunInfo"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tiles" id="tiles"></div>
+
+    <div class="card modebar">
+      <div class="row">
+        <span class="hint">Mostrar nas vistas</span>
+        <div class="seg" role="group" aria-label="O que as vistas mostram">
+          <button type="button" data-mode="instant" class="on">Agora</button>
+          <button type="button" data-mode="day">Dia</button>
+          <button type="button" data-mode="year">Ano</button>
+        </div>
+      </div>
+      <div class="legend" id="planLegend"></div>
+    </div>
+    <div class="views">
+      <div class="card">
+        <div class="vhead"><h2>Vista 3D</h2><span class="hint">Arraste para girar · paredes voltadas para você ficam ocultas</span></div>
+        <canvas id="c3d" aria-label="Vista 3D do cômodo com a mancha de sol"></canvas>
+      </div>
+      <div class="card">
+        <div class="vhead"><h2>Planta rebatida</h2><span class="hint">Paredes abertas para fora; a borda junto ao piso é o rodapé</span></div>
+        <canvas id="cPlan" aria-label="Planta do cômodo com paredes rebatidas"></canvas>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="vhead">
+        <h2>Mapa anual · dia × hora</h2>
+        <div class="row">
+          <label for="metric" class="hint">Cor mostra</label>
+          <select id="metric">
+            <option value="total">Área iluminada total (m²)</option>
+            <option value="floor">Área iluminada no piso (m²)</option>
+            <option value="power">Potência solar direta entrando (W, céu limpo)</option>
+          </select>
+        </div>
+      </div>
+      <div><canvas id="cHeat" aria-label="Mapa anual de insolação por dia e hora"></canvas></div>
+      <div class="legend" id="heatLegend"></div>
+      <div class="hint" style="margin-top:4px">Clique no mapa para ir até aquele dia e horário. Faixa cinza = sem sol direto.</div>
+    </div>
+
+    <div class="charts">
+      <div class="card"><div class="vhead"><h2>Horas de sol direto por dia</h2></div><canvas id="cHours"></canvas></div>
+      <div class="card"><div class="vhead"><h2>Energia solar direta por dia · kWh</h2></div><canvas id="cKwh"></canvas></div>
+    </div>
+
+    <div class="card notes">
+      <h2>Como o cálculo funciona</h2>
+      <ul>
+        <li>Posição do sol pelo algoritmo da NOAA (com refração atmosférica), fuso UTC−3 sem horário de verão.</li>
+        <li>A janela vira uma abertura efetiva: o recorte da espessura da parede (laterais, verga) e a sombra do beiral reduzem a área por onde o sol passa. O montante central das duas folhas faz uma faixa de sombra, e uma folha marcada como fechada bloqueia o sol na sua metade.</li>
+        <li>Essa abertura é projetada na direção dos raios e recortada contra piso, parede do fundo e paredes laterais. As áreas são exatas para essa geometria.</li>
+        <li>O beiral é tratado como contínuo ao longo da fachada. A “altura” informada (0,90 m) foi lida como altura da janela; peitoril, pé-direito, espessura da parede e montante são estimativas editáveis.</li>
+        <li>Energia e potência usam irradiância direta de céu limpo (modelo de Meinel, altitude ~660 m). Não entram nuvens, luz difusa, reflexos, vidro nem obstruções externas como prédios e árvores.</li>
+      </ul>
+    </div>
+  </main>
+</div>
+<div class="tip" id="tip"></div>
+
+<script>
+"use strict";
+const rad=Math.PI/180, deg=180/Math.PI;
+const MONTHS=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+const P={W:3,L:4.2,H:2.7,ww:1.2,wh:0.9,sill:1.1,mull:0.05,wallT:0.15,ohD:0.25,ohOff:0,facade:90,lat:-22.9706,lon:-46.9958,tz:-3,year:2026,alt_km:0.66,closeL:false,closeR:false};
+const T0=240, T1=1200, STEP=5, ROWS=(T1-T0)/STEP, NDAYS=365, CELL=0.05;
+const state={doy:304,minute:480,view:{yaw:205,pitch:42},mode:'instant',metric:'total',playing:false};
+let ANN=null, dayHeat=null, dayHeatKey=null, yearHeat=null;
+
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const nf=(x,d=2)=>x.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
+function fmtDate(doy){const d=new Date(Date.UTC(P.year,0,doy));return d.getUTCDate()+' '+MONTHS[d.getUTCMonth()];}
+function fmtTime(min){min=Math.round(min);const h=Math.floor(min/60),m=min%60;return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');}
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+/* ---------- Sol (NOAA) ---------- */
+function sunPos(doy,minLocal){
+  const utcMin=minLocal-P.tz*60;
+  const ms=Date.UTC(P.year,0,1)+(doy-1)*864e5+utcMin*6e4;
+  const jd=ms/864e5+2440587.5, T=(jd-2451545)/36525;
+  let L0=(280.46646+T*(36000.76983+T*0.0003032))%360; if(L0<0)L0+=360;
+  const M=357.52911+T*(35999.05029-0.0001537*T), Mr=M*rad;
+  const e=0.016708634-T*(0.000042037+0.0000001267*T);
+  const C=Math.sin(Mr)*(1.914602-T*(0.004817+0.000014*T))+Math.sin(2*Mr)*(0.019993-0.000101*T)+Math.sin(3*Mr)*0.000289;
+  const om=(125.04-1934.136*T)*rad;
+  const lam=(L0+C-0.00569-0.00478*Math.sin(om))*rad;
+  const eps0=23+(26+(21.448-T*(46.815+T*(0.00059-T*0.001813)))/60)/60;
+  const eps=(eps0+0.00256*Math.cos(om))*rad;
+  const decl=Math.asin(Math.sin(eps)*Math.sin(lam));
+  const y=Math.tan(eps/2)**2, L0r=L0*rad;
+  const eot=4*deg*(y*Math.sin(2*L0r)-2*e*Math.sin(Mr)+4*e*y*Math.sin(Mr)*Math.cos(2*L0r)-0.5*y*y*Math.sin(4*L0r)-1.25*e*e*Math.sin(2*Mr));
+  const tst=utcMin+eot+4*P.lon;
+  const ha=(tst/4-180)*rad, la=P.lat*rad;
+  const cz=Math.sin(la)*Math.sin(decl)+Math.cos(la)*Math.cos(decl)*Math.cos(ha);
+  let alt=Math.asin(clamp(cz,-1,1))*deg;
+  if(alt>-1) alt+=1.02/Math.tan((alt+10.3/(alt+5.11))*rad)/60;
+  const az=(Math.atan2(Math.sin(ha),Math.cos(ha)*Math.sin(la)-Math.tan(decl)*Math.cos(la))*deg+540)%360;
+  return {alt,az};
+}
+function sunLocal(alt,az){
+  const a=alt*rad,z=az*rad,f=P.facade*rad;
+  const sE=Math.cos(a)*Math.sin(z), sN=Math.cos(a)*Math.cos(z), U=Math.sin(a);
+  return {Ef:sE*Math.sin(f)+sN*Math.cos(f), Nr:-(sE*Math.cos(f)-sN*Math.sin(f)), U};
+}
+function dni(alt){
+  if(alt<=0) return 0;
+  const zen=90-alt;
+  const am=1/(Math.cos(zen*rad)+0.50572*Math.pow(96.07995-zen,-1.6364));
+  return 1361*((1-0.14*P.alt_km)*Math.pow(0.7,Math.pow(am,0.678))+0.14*P.alt_km);
+}
+
+/* ---------- Geometria ----------
+ Coordenadas do cômodo: d = profundidade a partir da face interna da parede da janela (0..L),
+ u = ao longo da parede, 0 à esquerda de quem olha pela janela (0..W), z = altura (0..H). */
+function apertureRects(s){
+  if(s.U<=5e-4||s.Ef<=5e-4) return [];
+  const u0=(P.W-P.ww)/2, u1=u0+P.ww, z0=P.sill, z1=P.sill+P.wh;
+  const a=s.Nr*P.wallT/s.Ef;
+  const uLo=Math.max(u0,u0+a), uHi=Math.min(u1,u1+a);
+  let zHi=z1-s.U*P.wallT/s.Ef;
+  if(P.ohD>0) zHi=Math.min(zHi, z1+P.ohOff-s.U*(P.wallT+P.ohD)/s.Ef);
+  if(uHi-uLo<=1e-6||zHi-z0<=1e-6) return [];
+  const uc=(u0+u1)/2, m=P.mull/2, segs=[];
+  if(!P.closeL&&uc-m>uLo) segs.push([uLo,Math.min(uHi,uc-m)]);
+  if(!P.closeR&&uc+m<uHi) segs.push([Math.max(uLo,uc+m),uHi]);
+  if(!P.closeL&&!P.closeR&&m===0&&segs.length===2) segs.splice(0,2,[uLo,uHi]);
+  return segs.filter(q=>q[1]-q[0]>1e-6).map(([a,b])=>({u0:a,u1:b,z0:z0,z1:zHi}));
+}
+function clipRect(poly,x0,y0,x1,y1){
+  let out=poly;
+  for(const [ax,v,sg] of [[0,x0,1],[0,x1,-1],[1,y0,1],[1,y1,-1]]){
+    const inp=out; out=[]; if(!inp.length) break;
+    for(let i=0;i<inp.length;i++){
+      const A=inp[i],B=inp[(i+1)%inp.length], da=sg*(A[ax]-v), db=sg*(B[ax]-v);
+      if(da>=0) out.push(A);
+      if((da>=0)!==(db>=0)){const t=da/(da-db); out.push([A[0]+(B[0]-A[0])*t,A[1]+(B[1]-A[1])*t]);}
+    }
+  }
+  return out;
+}
+function polyArea(p){let a=0;for(let i=0;i<p.length;i++){const A=p[i],B=p[(i+1)%p.length];a+=A[0]*B[1]-B[0]*A[1];}return a/2;}
+const FACE_DIM=()=>({floor:[P.L,P.W],back:[P.W,P.H],left:[P.L,P.H],right:[P.L,P.H]});
+function patches(s,rects){
+  const out={floor:[],back:[],left:[],right:[]};
+  for(const r of rects){
+    const pts=[[r.u0,r.z0],[r.u1,r.z0],[r.u1,r.z1],[r.u0,r.z1]];
+    out.floor.push(clipRect(pts.map(([u,z])=>[s.Ef*z/s.U,u+s.Nr*z/s.U]),0,0,P.L,P.W));
+    out.back.push(clipRect(pts.map(([u,z])=>[u+s.Nr*P.L/s.Ef,z-s.U*P.L/s.Ef]),0,0,P.W,P.H));
+    if(s.Nr>1e-6) out.right.push(clipRect(pts.map(([u,z])=>{const t=(P.W-u)/s.Nr;return [s.Ef*t,z-s.U*t];}),0,0,P.L,P.H));
+    if(s.Nr<-1e-6) out.left.push(clipRect(pts.map(([u,z])=>{const t=-u/s.Nr;return [s.Ef*t,z-s.U*t];}),0,0,P.L,P.H));
+  }
+  for(const k in out) out[k]=out[k].filter(p=>p.length>=3&&Math.abs(polyArea(p))>1e-7);
+  return out;
+}
+function evalAt(doy,minute){
+  const sp=sunPos(doy,minute), s=sunLocal(sp.alt,sp.az);
+  const rects=sp.alt>0?apertureRects(s):[];
+  const Aeff=rects.reduce((a,r)=>a+(r.u1-r.u0)*(r.z1-r.z0),0);
+  const pt=rects.length?patches(s,rects):{floor:[],back:[],left:[],right:[]};
+  const ar={};let tot=0,depth=0;
+  for(const k in pt){ar[k]=pt[k].reduce((a,p)=>a+Math.abs(polyArea(p)),0);tot+=ar[k];}
+  for(const p of pt.floor) for(const q of p) depth=Math.max(depth,q[0]);
+  const power=dni(sp.alt)*Aeff*Math.max(0,s.Ef);
+  return {sp,s,rects,Aeff,pt,ar,tot,depth,power};
+}
+function computeAnnual(){
+  const n=NDAYS*ROWS, total=new Float32Array(n), floor=new Float32Array(n), power=new Float32Array(n), days=[];
+  for(let d=1;d<=NDAYS;d++){
+    let first=null,last=null,cnt=0,kwh=0,maxF=0,maxD=0;
+    for(let r=0;r<ROWS;r++){
+      const min=T0+r*STEP, e=evalAt(d,min), i=(d-1)*ROWS+r;
+      total[i]=e.tot; floor[i]=e.ar.floor; power[i]=e.power;
+      if(e.Aeff>1e-5){cnt++; if(first===null) first=min; last=min;}
+      kwh+=e.power*STEP/60/1000; maxF=Math.max(maxF,e.ar.floor); maxD=Math.max(maxD,e.depth);
+    }
+    days.push({hours:cnt*STEP/60,kwh,first,last,maxF,maxD});
+  }
+  let r0=ROWS,r1=0;
+  for(let i=0;i<n;i++) if(total[i]>0){const r=i%ROWS; if(r<r0)r0=r; if(r>r1)r1=r;}
+  if(r0>r1){r0=0;r1=ROWS-1;} else {r0=Math.max(0,r0-6); r1=Math.min(ROWS-1,r1+6);}
+  return {total,floor,power,days,r0,r1};
+}
+/* Acúmulo de minutos de sol por célula de 5 cm em cada superfície */
+function newGrids(){const D=FACE_DIM(),g={};for(const k in D){const nx=Math.round(D[k][0]/CELL),ny=Math.round(D[k][1]/CELL);g[k]={nx,ny,a:new Float32Array(nx*ny)};}return g;}
+function inConvex(p,x,y,sg){for(let i=0;i<p.length;i++){const A=p[i],B=p[(i+1)%p.length];if(sg*((B[0]-A[0])*(y-A[1])-(B[1]-A[1])*(x-A[0]))<-1e-12)return false;}return true;}
+function accumulate(g,pt,w){
+  for(const k in pt){const G=g[k];
+    for(const p of pt[k]){
+      const sg=Math.sign(polyArea(p))||1;
+      let mnx=1e9,mny=1e9,mxx=-1e9,mxy=-1e9;for(const q of p){mnx=Math.min(mnx,q[0]);mxx=Math.max(mxx,q[0]);mny=Math.min(mny,q[1]);mxy=Math.max(mxy,q[1]);}
+      const i0=Math.max(0,Math.floor(mnx/CELL)),i1=Math.min(G.nx-1,Math.ceil(mxx/CELL)),j0=Math.max(0,Math.floor(mny/CELL)),j1=Math.min(G.ny-1,Math.ceil(mxy/CELL));
+      for(let i=i0;i<=i1;i++){const x=(i+.5)*CELL;for(let j=j0;j<=j1;j++){if(inConvex(p,x,(j+.5)*CELL,sg))G.a[i*G.ny+j]+=w;}}
+    }
+  }
+}
+function getDayHeat(doy){
+  if(dayHeat&&dayHeatKey===doy) return dayHeat;
+  const g=newGrids(), st=2;
+  for(let m=T0;m<T1;m+=st){const e=evalAt(doy,m+st/2); if(e.tot>0) accumulate(g,e.pt,st/60);}
+  dayHeat=g; dayHeatKey=doy; return g;
+}
+function getYearHeat(){
+  if(yearHeat) return yearHeat;
+  const g=newGrids(), st=10;
+  for(let d=1;d<=NDAYS;d++) for(let m=T0;m<T1;m+=st){const e=evalAt(d,m+st/2); if(e.tot>0) accumulate(g,e.pt,st/60);}
+  yearHeat=g; return g;
+}
+
+function getHeat(){
+  if(state.mode==='instant') return null;
+  const g=state.mode==='day'?getDayHeat(state.doy):getYearHeat(); let max=0;
+  for(const k in g){const a=g[k].a;for(let i=0;i<a.length;i++) if(a[i]>max)max=a[i];}
+  return {g,max};
+}
+/* ---------- Cores ---------- */
+function hex2rgb(h){h=h.replace('#','');return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];}
+let RAMP=[];
+function readRamp(){RAMP=[0,1,2,3,4,5,6].map(i=>hex2rgb(css('--seq-'+i)));}
+function ramp(t){t=clamp(t,0,1)*(RAMP.length-1);const i=Math.min(RAMP.length-2,Math.floor(t)),f=t-i,a=RAMP[i],b=RAMP[i+1];return `rgb(${Math.round(a[0]+(b[0]-a[0])*f)},${Math.round(a[1]+(b[1]-a[1])*f)},${Math.round(a[2]+(b[2]-a[2])*f)})`;}
+function rampCss(){return 'linear-gradient(90deg,'+RAMP.map(c=>`rgb(${c})`).join(',')+')';}
+function alpha(hex,a){const [r,g,b]=hex2rgb(hex);return `rgba(${r},${g},${b},${a})`;}
+const CARD=['norte','nordeste','leste','sudeste','sul','sudoeste','oeste','noroeste'];
+const cardinal=az=>CARD[Math.round((((az%360)+360)%360)/45)%8];
+function faceNames(){return {win:'Parede da janela ('+cardinal(P.facade)+')',back:'Parede do fundo ('+cardinal(P.facade+180)+')',left:'Parede '+cardinal(P.facade-90),right:'Parede '+cardinal(P.facade+90),floor:'Piso'};}
+
+function setupCanvas(cv,h){
+  const dpr=window.devicePixelRatio||1, w=Math.max(200,cv.parentElement.clientWidth);
+  cv.style.width=w+'px'; cv.style.height=h+'px'; cv.width=Math.round(w*dpr); cv.height=Math.round(h*dpr);
+  const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w,h};
+}
+
+/* ---------- Vista 3D ---------- */
+const sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]], dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+const norm=a=>{const l=Math.hypot(...a);return [a[0]/l,a[1]/l,a[2]/l];};
+let E=null;
+function draw3D(){
+  const cv=document.getElementById('c3d'), w0=cv.parentElement.clientWidth;
+  const {ctx,w,h}=setupCanvas(cv,Math.round(clamp(w0*0.82,260,470)));
+  const v=state.view, tgt=[P.L/2,P.W/2,P.H*0.4], R=3*Math.hypot(P.L,P.W,P.H), cp=Math.cos(v.pitch*rad);
+  const cam=[tgt[0]+R*cp*Math.cos(v.yaw*rad),tgt[1]+R*cp*Math.sin(v.yaw*rad),tgt[2]+R*Math.sin(v.pitch*rad)];
+  const fwd=norm(sub(tgt,cam)), right=norm(cross(fwd,[0,0,1])), up=cross(right,fwd);
+  const raw=p=>{const q=sub(p,cam),z=dot(q,fwd);return [dot(q,right)/z,dot(q,up)/z];};
+  const u0=(P.W-P.ww)/2,u1=u0+P.ww,z0=P.sill,z1=P.sill+P.wh,zo=z1+P.ohOff;
+  const s=E.s, sunUp=E.sp.alt>0, front=s.Ef>0, HT=getHeat();
+  const sunDir=norm([-s.Ef,-s.Nr,s.U]);
+  const wc=[0,(u0+u1)/2,(z0+z1)/2];
+  const sunPt=[wc[0]+1.5*sunDir[0],wc[1]+1.5*sunDir[1],wc[2]+1.5*sunDir[2]];
+  // ajuste automático de escala
+  const fitPts=[[0,0,0],[P.L,0,0],[P.L,P.W,0],[0,P.W,0],[0,0,P.H],[P.L,0,P.H],[P.L,P.W,P.H],[0,P.W,P.H],[-P.wallT-P.ohD,0,zo],[-P.wallT-P.ohD,P.W,zo]];
+  if(sunUp&&front) fitPts.push(sunPt);
+  let mnx=1e9,mxx=-1e9,mny=1e9,mxy=-1e9;
+  for(const p of fitPts){const r=raw(p);mnx=Math.min(mnx,r[0]);mxx=Math.max(mxx,r[0]);mny=Math.min(mny,r[1]);mxy=Math.max(mxy,r[1]);}
+  const pad=22, f=Math.min((w-2*pad)/(mxx-mnx),(h-2*pad)/(mxy-mny)), cx=(mnx+mxx)/2, cy=(mny+mxy)/2;
+  const pr=p=>{const r=raw(p);return [w/2+f*(r[0]-cx),h/2-f*(r[1]-cy)];};
+  const poly=(pts,fill,stroke,lw=1,dash)=>{ctx.beginPath();pts.forEach((p,i)=>{const q=pr(p);i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]);});ctx.closePath();if(fill){ctx.fillStyle=fill;ctx.fill();}if(stroke){ctx.setLineDash(dash||[]);ctx.strokeStyle=stroke;ctx.lineWidth=lw;ctx.stroke();ctx.setLineDash([]);}};
+  const line=(a,b,c,lw=1,dash)=>{const p=pr(a),q=pr(b);ctx.beginPath();ctx.moveTo(p[0],p[1]);ctx.lineTo(q[0],q[1]);ctx.setLineDash(dash||[]);ctx.strokeStyle=c;ctx.lineWidth=lw;ctx.stroke();ctx.setLineDash([]);};
+  const C={floor:css('--floor'),a:css('--wall-a'),b:css('--wall-b'),line:css('--line'),ink2:css('--ink-2'),ink3:css('--ink-3'),sun:css('--sun'),sky:css('--sky')};
+  const F=[
+    {k:'floor',n:[0,0,1],p0:[0,0,0],to:(x,y)=>[x,y,0],dim:[P.L,P.W],col:C.floor},
+    {k:'back',n:[-1,0,0],p0:[P.L,0,0],to:(x,y)=>[P.L,x,y],dim:[P.W,P.H],col:C.b},
+    {k:'left',n:[0,1,0],p0:[0,0,0],to:(x,y)=>[x,0,y],dim:[P.L,P.H],col:C.a},
+    {k:'right',n:[0,-1,0],p0:[0,P.W,0],to:(x,y)=>[x,P.W,y],dim:[P.L,P.H],col:C.a},
+    {k:'win',n:[1,0,0],p0:[0,0,0],to:(x,y)=>[0,x,y],dim:[P.W,P.H],col:C.b},
+  ];
+  const quad=f=>[f.to(0,0),f.to(f.dim[0],0),f.to(f.dim[0],f.dim[1]),f.to(0,f.dim[1])];
+  for(const fc of F){
+    const vis=dot(fc.n,sub(cam,fc.p0))>0;
+    if(!vis){poly(quad(fc),null,C.ink3,1,[3,4]);continue;}
+    if(fc.k==='win'){
+      ctx.beginPath();
+      for(const pts of [quad(fc),[[0,u0,z0],[0,u0,z1],[0,u1,z1],[0,u1,z0]]]){pts.forEach((p,i)=>{const q=pr(p);i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]);});ctx.closePath();}
+      ctx.fillStyle=fc.col;ctx.fill('evenodd');
+    } else poly(quad(fc),fc.col,C.line,1);
+    if(fc.k==='floor'){for(let x=0.5;x<P.L-1e-6;x+=0.5)line([x,0,0],[x,P.W,0],alpha(C.ink3,0.18));for(let y=0.5;y<P.W-1e-6;y+=0.5)line([0,y,0],[P.L,y,0],alpha(C.ink3,0.18));}
+    if(HT&&HT.g[fc.k]&&HT.max>0){const G=HT.g[fc.k];
+      for(let i=0;i<G.nx;i++) for(let j=0;j<G.ny;j++){const val=G.a[i*G.ny+j]; if(val<=0)continue;
+        const x0=i*CELL,y0=j*CELL,a=pr(fc.to(x0,y0)),b=pr(fc.to(x0+CELL,y0)),c=pr(fc.to(x0+CELL,y0+CELL)),d=pr(fc.to(x0,y0+CELL));
+        ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.lineTo(c[0],c[1]);ctx.lineTo(d[0],d[1]);ctx.closePath();ctx.fillStyle=ramp(val/HT.max);ctx.fill();ctx.strokeStyle=ctx.fillStyle;ctx.lineWidth=0.6;ctx.stroke();}
+    } else if(!HT&&E.pt[fc.k]) for(const p of E.pt[fc.k]) poly(p.map(q=>fc.to(q[0],q[1])),alpha(C.sun,0.9),null);
+  }
+  // janela, montante, beiral
+  poly([[0,u0,z0],[0,u1,z0],[0,u1,z1],[0,u0,z1]],null,C.ink2,1.5);
+  {const uc=(u0+u1)/2;
+   if(P.closeL) poly([[0,u0,z0],[0,uc,z0],[0,uc,z1],[0,u0,z1]],alpha(C.ink2,0.75),null);
+   if(P.closeR) poly([[0,uc,z0],[0,u1,z0],[0,u1,z1],[0,uc,z1]],alpha(C.ink2,0.75),null);
+   if(P.mull>0) poly([[0,uc-P.mull/2,z0],[0,uc+P.mull/2,z0],[0,uc+P.mull/2,z1],[0,uc-P.mull/2,z1]],C.ink2,null);}
+  if(P.ohD>0) poly([[-P.wallT,0,zo],[-P.wallT-P.ohD,0,zo],[-P.wallT-P.ohD,P.W,zo],[-P.wallT,P.W,zo]],alpha(C.ink2,0.35),C.ink2,1);
+  // raios
+  if(!HT&&E.rects.length){
+    for(const r of E.rects) for(const [u,z] of [[r.u0,r.z0],[r.u1,r.z0],[r.u1,r.z1],[r.u0,r.z1]]){
+      let t=Math.min(z/s.U,P.L/s.Ef); if(s.Nr>1e-6)t=Math.min(t,(P.W-u)/s.Nr); if(s.Nr<-1e-6)t=Math.min(t,-u/s.Nr);
+      line([0,u,z],[s.Ef*t,u+s.Nr*t,z-s.U*t],alpha(C.sun,0.45),1);
+    }
+  }
+  // sol
+  if(!HT&&sunUp&&front){
+    line(wc,sunPt,alpha(C.sun,0.8),1.5,[4,4]);
+    const q=pr(sunPt);ctx.beginPath();ctx.arc(q[0],q[1],8,0,7);ctx.fillStyle=C.sun;ctx.fill();
+  }
+  // norte
+  const fr=P.facade*rad, nd=[-Math.cos(fr),-Math.sin(fr)], c0=[P.L-0.45,P.W-0.45,0], c1=[c0[0]+0.35*nd[0],c0[1]+0.35*nd[1],0];
+  line(c0,c1,C.ink2,1.5); const q=pr(c1),qq=pr([c0[0]+0.5*nd[0],c0[1]+0.5*nd[1],0]);
+  ctx.fillStyle=C.ink2;ctx.font='600 12px '+css('--font-body');ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('N',qq[0],qq[1]);
+  ctx.beginPath();ctx.arc(q[0],q[1],2.5,0,7);ctx.fill();
+  if(!HT&&(!sunUp||!front)){ctx.fillStyle=C.ink3;ctx.textAlign='left';ctx.textBaseline='top';ctx.font='12px '+css('--font-body');ctx.fillText(sunUp?'Sol atrás da fachada: sem sol direto':'Sol abaixo do horizonte',10,8);}
+}
+
+/* ---------- Planta rebatida ---------- */
+function drawPlan(){
+  const cv=document.getElementById('cPlan'), w0=cv.parentElement.clientWidth;
+  const {ctx,w,h}=setupCanvas(cv,Math.round(clamp(w0*0.82,260,470)));
+  const X0=-P.H,X1=P.W+P.H,Y0=-P.H,Y1=P.L+P.H,pad=14;
+  const sc=Math.min((w-2*pad)/(X1-X0),(h-2*pad)/(Y1-Y0));
+  const ox=(w-sc*(X1-X0))/2-sc*X0, oy=(h-sc*(Y1-Y0))/2-sc*Y0;
+  const S=(X,Y)=>[ox+sc*X,oy+sc*Y];
+  const T={floor:(x,y)=>[y,x],back:(x,y)=>[x,P.L+y],left:(x,y)=>[-y,x],right:(x,y)=>[P.W+y,x],win:(x,y)=>[x,-y]};
+  const D=Object.assign(FACE_DIM(),{win:[P.W,P.H]});
+  const C={floor:css('--floor'),a:css('--wall-a'),b:css('--wall-b'),line:css('--line'),ink:css('--ink'),ink2:css('--ink-2'),ink3:css('--ink-3'),sun:css('--sun'),sky:css('--sky')};
+  const col={floor:C.floor,back:C.b,left:C.a,right:C.a,win:C.b};
+  const rectFace=(k,x0,y0,x1,y1,fill)=>{const a=S(...T[k](x0,y0)),b=S(...T[k](x1,y1));ctx.fillStyle=fill;ctx.fillRect(Math.min(a[0],b[0]),Math.min(a[1],b[1]),Math.abs(b[0]-a[0])+0.4,Math.abs(b[1]-a[1])+0.4);};
+  for(const k in D){rectFace(k,0,0,D[k][0],D[k][1],col[k]);}
+  // janela
+  const u0=(P.W-P.ww)/2,u1=u0+P.ww;
+  rectFace('win',u0,P.sill,u1,P.sill+P.wh,C.sky);
+  if(P.closeL) rectFace('win',u0,P.sill,P.W/2,P.sill+P.wh,alpha(C.ink2,0.75));
+  if(P.closeR) rectFace('win',P.W/2,P.sill,u1,P.sill+P.wh,alpha(C.ink2,0.75));
+  if(P.mull>0) rectFace('win',P.W/2-P.mull/2,P.sill,P.W/2+P.mull/2,P.sill+P.wh,C.ink2);
+  const mode=state.mode, HT=getHeat(), g=HT&&HT.g, max=HT?HT.max:0;
+  if(g){
+    if(max>0) for(const k in g){const G=g[k];
+      for(let i=0;i<G.nx;i++) for(let j=0;j<G.ny;j++){const v=G.a[i*G.ny+j]; if(v<=0)continue; rectFace(k,i*CELL,j*CELL,(i+1)*CELL,(j+1)*CELL,ramp(v/max));}
+    }
+  } else {
+    for(const k in E.pt) for(const p of E.pt[k]){ctx.beginPath();p.forEach((q,i)=>{const s=S(...T[k](q[0],q[1]));i?ctx.lineTo(s[0],s[1]):ctx.moveTo(s[0],s[1]);});ctx.closePath();ctx.fillStyle=alpha(C.sun,0.92);ctx.fill();}
+  }
+  // grade do piso e contornos
+  ctx.strokeStyle=alpha(C.ink3,0.22);ctx.lineWidth=1;
+  for(let x=0.5;x<P.L-1e-6;x+=0.5){const a=S(0,x),b=S(P.W,x);ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();}
+  for(let y=0.5;y<P.W-1e-6;y+=0.5){const a=S(y,0),b=S(y,P.L);ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();}
+  ctx.strokeStyle=C.ink3;ctx.lineWidth=1;
+  for(const k in D){const a=S(...T[k](0,0)),b=S(...T[k](D[k][0],D[k][1]));ctx.strokeRect(Math.min(a[0],b[0]),Math.min(a[1],b[1]),Math.abs(b[0]-a[0]),Math.abs(b[1]-a[1]));}
+  {const a=S(...T.win(u0,P.sill)),b=S(...T.win(u1,P.sill+P.wh));ctx.strokeStyle=C.ink2;ctx.lineWidth=1.5;ctx.strokeRect(a[0],b[1],b[0]-a[0],a[1]-b[1]);}
+  // rótulos
+  const N=faceNames(); ctx.fillStyle=C.ink2; ctx.font='11px '+css('--font-body'); ctx.textAlign='center'; ctx.textBaseline='middle';
+  const lab=(t,X,Y,rot)=>{const s=S(X,Y);ctx.save();ctx.translate(s[0],s[1]);if(rot)ctx.rotate(rot);ctx.fillText(t,0,0);ctx.restore();};
+  lab(N.win,P.W/2,-P.H+0.22); lab(N.back,P.W/2,P.L+P.H-0.22); lab(N.left,-P.H+0.22,P.L/2,-Math.PI/2); lab(N.right,P.W+P.H-0.22,P.L/2,Math.PI/2);
+  ctx.font='600 12px '+css('--font-body'); ctx.fillStyle=C.ink; lab('Piso '+nf(P.W)+' × '+nf(P.L)+' m',P.W/2,P.L-0.2);
+  // legenda
+  const lg=document.getElementById('planLegend');
+  if(mode==='instant') lg.innerHTML='<span class="sw"></span><span>sol direto em '+fmtDate(state.doy)+', '+fmtTime(state.minute)+'</span>';
+  else if(max<=0) lg.innerHTML='<span>sem sol direto '+(mode==='day'?'em '+fmtDate(state.doy):'no ano')+'</span>';
+  else { const u=mode==='day'?'h de sol em '+fmtDate(state.doy):'h de sol por ano'; lg.innerHTML='<span>0</span><span class="bar" style="background:'+rampCss()+'"></span><span>'+nf(max,1)+' '+u+'</span>'; }
+}
+
+/* ---------- Mapa anual ---------- */
+const MSTART=[...Array(12)].map((_,m)=>Math.round((Date.UTC(P.year,m,1)-Date.UTC(P.year,0,1))/864e5)+1);
+let heatGeom=null;
+function metricInfo(){return {total:{u:'m²',d:2},floor:{u:'m²',d:2},power:{u:'W',d:0}}[state.metric];}
+function drawHeat(){
+  const cv=document.getElementById('cHeat'), {ctx,w,h}=setupCanvas(cv,300);
+  const m={l:44,r:10,t:8,b:24}, pw=w-m.l-m.r, ph=h-m.t-m.b, r0=ANN.r0, r1=ANN.r1, nr=r1-r0+1;
+  const arr=ANN[state.metric]; let vmax=0; for(const v of arr) if(v>vmax)vmax=v;
+  const cw=pw/NDAYS, rh=ph/nr;
+  ctx.fillStyle=css('--surface-2'); ctx.fillRect(m.l,m.t,pw,ph);
+  for(let d=0;d<NDAYS;d++) for(let r=r0;r<=r1;r++){const v=arr[d*ROWS+r]; if(v<=0)continue; ctx.fillStyle=ramp(v/vmax); ctx.fillRect(m.l+d*cw,m.t+ph-(r-r0+1)*rh,cw+0.5,rh+0.5);}
+  const ink2=css('--ink-2'),ink3=css('--ink-3'),ink=css('--ink');
+  ctx.font='11px '+css('--font-mono'); ctx.fillStyle=ink2; ctx.textBaseline='middle'; ctx.textAlign='right';
+  const tA=T0+r0*STEP, tB=T0+(r1+1)*STEP;
+  for(let t=Math.ceil(tA/60)*60;t<=tB;t+=60){const y=m.t+ph-(t-tA)/STEP*rh; ctx.fillText(fmtTime(t).slice(0,2)+'h',m.l-6,y); ctx.fillStyle=alpha(ink3,0.25); ctx.fillRect(m.l,y,pw,1); ctx.fillStyle=ink2;}
+  ctx.textAlign='left'; ctx.textBaseline='top';
+  MSTART.forEach((d,i)=>{const x=m.l+(d-1)*cw; ctx.fillStyle=alpha(ink3,0.35); ctx.fillRect(x,m.t,1,ph); ctx.fillStyle=ink2; ctx.fillText(MONTHS[i],x+3,m.t+ph+6);});
+  // marcador
+  const x=m.l+(state.doy-0.5)*cw, y=m.t+ph-(state.minute-tA)/STEP*rh;
+  ctx.strokeStyle=ink; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.moveTo(x,m.t); ctx.lineTo(x,m.t+ph); ctx.stroke();
+  if(y>=m.t&&y<=m.t+ph){ctx.beginPath(); ctx.moveTo(m.l,y); ctx.lineTo(m.l+pw,y); ctx.stroke();}
+  ctx.setLineDash([]);
+  if(y>=m.t&&y<=m.t+ph){ctx.beginPath(); ctx.arc(x,y,5,0,7); ctx.strokeStyle=css('--surface'); ctx.lineWidth=3; ctx.stroke(); ctx.strokeStyle=ink; ctx.lineWidth=1.5; ctx.stroke();}
+  heatGeom={m,pw,ph,cw,rh,tA,r0,r1};
+  const mi=metricInfo();
+  document.getElementById('heatLegend').innerHTML='<span>0</span><span class="bar" style="background:'+rampCss()+'"></span><span>'+nf(vmax,mi.d)+' '+mi.u+'</span>';
+}
+function heatHit(ev){
+  if(!heatGeom) return null; const g=heatGeom, b=ev.target.getBoundingClientRect(), x=ev.clientX-b.left-g.m.l, y=ev.clientY-b.top-g.m.t;
+  if(x<0||y<0||x>g.pw||y>g.ph) return null;
+  const doy=clamp(Math.floor(x/g.cw)+1,1,NDAYS), r=clamp(Math.floor((g.ph-y)/g.rh)+g.r0,g.r0,g.r1);
+  return {doy,r,minute:T0+r*STEP};
+}
+
+/* ---------- Séries diárias ---------- */
+const lineGeom={};
+function drawLine(id,vals,dec,unit){
+  const cv=document.getElementById(id), {ctx,w,h}=setupCanvas(cv,190);
+  const m={l:40,r:12,t:12,b:24}, pw=w-m.l-m.r, ph=h-m.t-m.b;
+  const vm=Math.max(...vals)*1.05||1, p10=Math.pow(10,Math.floor(Math.log10(vm/4))), st=[1,2,2.5,5,10].map(k=>k*p10).find(k=>k>=vm/4), nt=Math.ceil(vm/st), ymax=st*nt;
+  const tdec=st<1?(st*10%1?2:1):(st%1?1:0), X=d=>m.l+(d-0.5)/NDAYS*pw, Y=v=>m.t+ph-v/ymax*ph;
+  const ink2=css('--ink-2'),ink3=css('--ink-3'),sun=css('--sun'),ink=css('--ink');
+  ctx.font='11px '+css('--font-mono'); ctx.textAlign='right'; ctx.textBaseline='middle';
+  for(let i=0;i<=nt;i++){const v=st*i,y=Y(v); ctx.fillStyle=alpha(ink3,i?0.22:0.5); ctx.fillRect(m.l,Math.round(y),pw,1); ctx.fillStyle=ink2; ctx.fillText(nf(v,tdec),m.l-6,y);}
+  ctx.textAlign='left'; ctx.textBaseline='top';
+  MSTART.forEach((d,i)=>{if(i%2)return; ctx.fillStyle=ink2; ctx.fillText(MONTHS[i],X(d),m.t+ph+6);});
+  ctx.beginPath(); vals.forEach((v,i)=>{const x=X(i+1),y=Y(v); i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
+  ctx.lineTo(X(NDAYS),Y(0)); ctx.lineTo(X(1),Y(0)); ctx.closePath(); ctx.fillStyle=alpha(sun,0.14); ctx.fill();
+  ctx.beginPath(); vals.forEach((v,i)=>{const x=X(i+1),y=Y(v); i?ctx.lineTo(x,y):ctx.moveTo(x,y);}); ctx.strokeStyle=sun; ctx.lineWidth=2; ctx.lineJoin='round'; ctx.stroke();
+  const d=state.doy, xs=X(d), ys=Y(vals[d-1]);
+  ctx.strokeStyle=alpha(ink,0.6); ctx.lineWidth=1; ctx.setLineDash([3,3]); ctx.beginPath(); ctx.moveTo(xs,m.t); ctx.lineTo(xs,m.t+ph); ctx.stroke(); ctx.setLineDash([]);
+  ctx.beginPath(); ctx.arc(xs,ys,4.5,0,7); ctx.fillStyle=sun; ctx.fill(); ctx.strokeStyle=css('--surface'); ctx.lineWidth=2; ctx.stroke();
+  ctx.fillStyle=ink; ctx.font='500 12px '+css('--font-mono'); ctx.textAlign=xs>m.l+pw-90?'right':'left'; ctx.textBaseline='bottom';
+  ctx.fillText(nf(vals[d-1],dec)+' '+unit,xs+(ctx.textAlign==='left'?8:-8),Math.max(m.t+14,ys-6));
+  lineGeom[id]={m,pw,ph,vals,dec,unit};
+}
+
+/* ---------- Painel e leituras ---------- */
+function updateTiles(){
+  const e=E, dd=ANN.days[state.doy-1], N=faceNames();
+  document.getElementById('vDay').textContent=fmtDate(state.doy);
+  document.getElementById('vMin').textContent=fmtTime(state.minute);
+  document.getElementById('sunInfo').textContent='Sol: altura '+nf(e.sp.alt,1)+'° · azimute '+nf(e.sp.az,1)+'°';
+  const walls=[['back',N.back],['left',N.left],['right',N.right]].filter(([k])=>e.ar[k]>0.0005).map(([k,n])=>n.replace('Parede ','')+' '+nf(e.ar[k])+' m²').join(' · ')||'nenhuma parede';
+  const tiles=[
+    {now:1,k:'Área iluminada agora',v:nf(e.tot)+' m²',d:'piso '+nf(e.ar.floor)+' m² · '+walls},
+    {now:1,k:'Alcance no piso agora',v:e.ar.floor>0?nf(e.depth)+' m':'—',d:'a partir da parede da janela'},
+    {now:1,k:'Potência direta agora',v:nf(e.power,0)+' W',d:'céu limpo, abertura efetiva '+nf(e.Aeff*1e4/1e4,2)+' m²'},
+    {k:'Sol direto em '+fmtDate(state.doy),v:dd.hours>0?nf(dd.hours,1)+' h':'0 h',d:dd.first!==null?'das '+fmtTime(dd.first)+' às '+fmtTime(dd.last+STEP):'sem sol direto neste dia'},
+    {k:'Energia direta no dia',v:nf(dd.kwh,2)+' kWh',d:'maior mancha no piso '+nf(dd.maxF)+' m², alcance '+nf(dd.maxD)+' m'},
+  ];
+  document.getElementById('tiles').innerHTML=tiles.map(t=>`<div class="tile${t.now?' now':''}"><span class="k">${t.k}</span><span class="v">${t.v}</span><span class="d">${t.d}</span></div>`).join('');
+}
+function renderInstant(){E=evalAt(state.doy,state.minute); updateTiles(); draw3D(); drawPlan(); drawHeat(); drawLine('cHours',ANN.days.map(d=>d.hours),1,'h'); drawLine('cKwh',ANN.days.map(d=>d.kwh),2,'kWh');}
+function syncTimeRange(){const a=T0+ANN.r0*STEP,b=T0+(ANN.r1+1)*STEP; sMin.min=a; sMin.max=b; state.minute=clamp(state.minute,a,b); sMin.value=state.minute;}
+function renderAll(){readRamp(); leafLabels(); syncTimeRange(); renderInstant();}
+
+function readParams(){
+  const g=id=>parseFloat(document.getElementById(id).value);
+  const np={W:g('pW'),L:g('pL'),H:g('pH'),ww:g('pWW'),wh:g('pWH'),sill:g('pSill'),mull:g('pMull')/100,wallT:g('pWallT')/100,ohD:g('pOhD')/100,ohOff:g('pOhOff')/100,facade:g('pFac'),lat:g('pLat'),lon:g('pLon')};
+  const err=document.getElementById('err');
+  if(Object.values(np).some(v=>!isFinite(v))){err.textContent='Preencha todos os campos com números.';return false;}
+  if(np.ww>np.W){err.textContent='A janela é mais larga que a parede. Reduza a largura da janela.';return false;}
+  if(np.sill+np.wh>np.H){err.textContent='Peitoril + altura da janela passa do pé-direito. Ajuste um dos dois.';return false;}
+  if(np.mull>=np.ww){err.textContent='O montante central precisa ser menor que a janela.';return false;}
+  if(Math.abs(np.lat)>66){err.textContent='Use uma latitude entre −66° e 66°.';return false;}
+  err.textContent=''; Object.assign(P,np); return true;
+}
+let pTimer=null;
+function onParams(){clearTimeout(pTimer); pTimer=setTimeout(()=>{if(!readParams())return; ANN=computeAnnual(); dayHeat=null; yearHeat=null; renderAll();},180);}
+document.querySelectorAll('aside input').forEach(i=>i.addEventListener('input',onParams));
+
+const sDay=document.getElementById('sDay'), sMin=document.getElementById('sMin');
+function setDay(d){state.doy=clamp(Math.round(d),1,NDAYS); sDay.value=state.doy; renderInstant();}
+function setMin(m){state.minute=clamp(Math.round(m),+sMin.min,+sMin.max); sMin.value=state.minute; renderInstant();}
+sDay.addEventListener('input',()=>setDay(+sDay.value));
+sMin.addEventListener('input',()=>setMin(+sMin.value));
+document.querySelectorAll('[data-doy]').forEach(b=>b.addEventListener('click',()=>{setDay(+b.dataset.doy); const dd=ANN.days[state.doy-1]; if(dd.first!==null&&(state.minute<dd.first||state.minute>dd.last)) setMin(dd.first+Math.round((dd.last-dd.first)/3/5)*5);}));
+document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>{
+  state.mode=b.dataset.mode; document.querySelectorAll('[data-mode]').forEach(x=>x.classList.toggle('on',x===b));
+  const go=()=>{draw3D();drawPlan();};
+  if(state.mode==='year'&&!yearHeat){document.getElementById('planLegend').textContent='Calculando o ano inteiro…'; setTimeout(go,20);} else go();
+}));
+document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('[data-tab]').forEach(x=>{const on=x===b;x.classList.toggle('on',on);x.setAttribute('aria-selected',on);document.getElementById('tab-'+x.dataset.tab).hidden=!on;});
+}));
+document.querySelectorAll('[data-leaf]').forEach(b=>b.addEventListener('click',()=>{
+  const k='close'+b.dataset.leaf, v=b.dataset.v==='1'; if(P[k]===v) return; P[k]=v;
+  document.querySelectorAll('[data-leaf="'+b.dataset.leaf+'"]').forEach(x=>x.classList.toggle('on',x===b));
+  ANN=computeAnnual(); dayHeat=null; yearHeat=null; renderAll();
+}));
+function leafLabels(){document.getElementById('lblL').textContent='lado '+cardinal(P.facade-90); document.getElementById('lblR').textContent='lado '+cardinal(P.facade+90);}
+document.getElementById('metric').addEventListener('change',e=>{state.metric=e.target.value; drawHeat();});
+
+// animação
+const bPlay=document.getElementById('bPlay'); let lastTs=0;
+function tick(ts){
+  if(!state.playing) return;
+  if(ts-lastTs>40){lastTs=ts; const dd=ANN.days[state.doy-1];
+    if(dd.first===null){stopPlay();return;}
+    let m=state.minute+2; if(m>dd.last+30||m<dd.first-30) m=dd.first-20; setMin(m);}
+  requestAnimationFrame(tick);
+}
+function stopPlay(){state.playing=false; bPlay.textContent='▶ Animar dia'; bPlay.classList.remove('on');}
+bPlay.addEventListener('click',()=>{if(state.playing){stopPlay();return;} state.playing=true; bPlay.textContent='❚❚ Pausar'; bPlay.classList.add('on'); requestAnimationFrame(tick);});
+
+// arrastar 3D
+const c3d=document.getElementById('c3d'); let drag=null;
+c3d.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,yaw:state.view.yaw,pitch:state.view.pitch}; c3d.setPointerCapture(e.pointerId);});
+c3d.addEventListener('pointermove',e=>{if(!drag)return; state.view.yaw=drag.yaw-(e.clientX-drag.x)*0.5; state.view.pitch=clamp(drag.pitch+(e.clientY-drag.y)*0.4,8,88); draw3D();});
+c3d.addEventListener('pointerup',()=>drag=null); c3d.addEventListener('pointercancel',()=>drag=null);
+
+// tooltips
+const tip=document.getElementById('tip');
+function showTip(e,html){tip.innerHTML=html; tip.style.opacity=1; const x=e.clientX+14,y=e.clientY+14; tip.style.left=Math.min(x,window.innerWidth-tip.offsetWidth-8)+'px'; tip.style.top=Math.min(y,window.innerHeight-tip.offsetHeight-8)+'px';}
+const hideTip=()=>tip.style.opacity=0;
+const cHeat=document.getElementById('cHeat');
+cHeat.addEventListener('pointermove',e=>{const h=heatHit(e); if(!h){hideTip();return;} const v=ANN[state.metric][(h.doy-1)*ROWS+h.r], mi=metricInfo(); showTip(e,fmtDate(h.doy)+' · '+fmtTime(h.minute)+'<br>'+(v>0?nf(v,mi.d)+' '+mi.u:'sem sol direto'));});
+cHeat.addEventListener('pointerleave',hideTip);
+cHeat.addEventListener('click',e=>{const h=heatHit(e); if(!h)return; state.doy=h.doy; sDay.value=h.doy; setMin(h.minute+STEP/2);});
+for(const id of ['cHours','cKwh']){
+  const cv=document.getElementById(id);
+  cv.addEventListener('pointermove',e=>{const g=lineGeom[id]; if(!g)return; const b=cv.getBoundingClientRect(), x=e.clientX-b.left-g.m.l; if(x<0||x>g.pw){hideTip();return;} const d=clamp(Math.floor(x/g.pw*NDAYS)+1,1,NDAYS); showTip(e,fmtDate(d)+' · '+nf(g.vals[d-1],g.dec)+' '+g.unit);});
+  cv.addEventListener('pointerleave',hideTip);
+  cv.addEventListener('click',e=>{const g=lineGeom[id], b=cv.getBoundingClientRect(), x=e.clientX-b.left-g.m.l; if(x<0||x>g.pw)return; setDay(Math.floor(x/g.pw*NDAYS)+1);});
+  cv.style.cursor='pointer';
+}
+
+// tema e redimensionamento
+let rT=null; window.addEventListener('resize',()=>{clearTimeout(rT); rT=setTimeout(renderAll,120);});
+try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',renderAll);}catch(_){}
+new MutationObserver(renderAll).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+
+readParams(); ANN=computeAnnual(); renderAll();
+if('serviceWorker' in navigator && location.hostname.endsWith('github.io')){try{navigator.serviceWorker.register('sw.js').catch(()=>{});}catch(_){}}
+</script>
+</body>
+</html>
