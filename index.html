@@ -24,7 +24,7 @@
   --sun:#ec8a06; --sun-ink:#9a5200; --sun-soft:rgba(236,138,6,.16);
   --floor:#e6e9ee; --wall-a:#d7dce4; --wall-b:#cdd3dd; --sky:#f6f8fb;
   --seq-0:#fdf0d5; --seq-1:#fcd892; --seq-2:#f8bb4f; --seq-3:#f09a22; --seq-4:#d9770c; --seq-5:#ad5609; --seq-6:#743806;
-  --lx-1:#6da7ec; --lx-2:#2a78d6; --lx-3:#104281;
+  --lx-1:#6da7ec; --lx-2:#2a78d6; --lx-3:#104281; --pick:#c2185b; --pick-soft:rgba(194,24,91,.16);
   --font-display:"IBM Plex Sans Condensed","IBM Plex Sans",system-ui,sans-serif;
   --font-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
   --font-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
@@ -36,7 +36,7 @@
     --sun:#f6a623; --sun-ink:#fbc366; --sun-soft:rgba(246,166,35,.16);
     --floor:#2a3039; --wall-a:#323943; --wall-b:#39414c; --sky:#1d222a;
     --seq-0:#3b2810; --seq-1:#68420f; --seq-2:#985f0f; --seq-3:#c97f12; --seq-4:#eda02b; --seq-5:#fbc366; --seq-6:#ffe3a8;
-    --lx-1:#cde2fb; --lx-2:#6da7ec; --lx-3:#3987e5;
+    --lx-1:#cde2fb; --lx-2:#6da7ec; --lx-3:#3987e5; --pick:#f06292; --pick-soft:rgba(240,98,146,.2);
     color-scheme:dark;
   }
 }
@@ -45,7 +45,7 @@
   --sun:#f6a623; --sun-ink:#fbc366; --sun-soft:rgba(246,166,35,.16);
   --floor:#2a3039; --wall-a:#323943; --wall-b:#39414c; --sky:#1d222a;
   --seq-0:#3b2810; --seq-1:#68420f; --seq-2:#985f0f; --seq-3:#c97f12; --seq-4:#eda02b; --seq-5:#fbc366; --seq-6:#ffe3a8;
-  --lx-1:#cde2fb; --lx-2:#6da7ec; --lx-3:#3987e5;
+  --lx-1:#cde2fb; --lx-2:#6da7ec; --lx-3:#3987e5; --pick:#f06292; --pick-soft:rgba(240,98,146,.2);
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -121,6 +121,11 @@ header .sub{flex-basis:100%}
 .leaf .seg{display:flex}
 .leaf .seg button{flex:1}
 .leaf .seg button.closed.on{background:var(--ink-2);border-color:var(--ink-2)}
+.pickbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:13px;color:var(--ink-2);padding:2px 2px 0}
+.pickbar .dot{display:inline-block;width:12px;height:12px;border-radius:50%;border:2px solid var(--pick);box-shadow:inset 0 0 0 2px var(--surface),inset 0 0 0 6px var(--pick);vertical-align:-2px;margin-right:6px}
+.pickbar b{font-weight:600;color:var(--ink)}
+#cPlan{cursor:crosshair}
+.lxleg i.pband{width:14px;height:10px;border-radius:2px;background:var(--pick-soft);border:1px solid var(--pick)}
 .modebar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
 .modebar .legend{margin-top:0;flex:1 1 280px;justify-content:flex-end}
 .modebar .legend span{white-space:nowrap}
@@ -295,20 +300,21 @@ header .sub{flex-basis:100%}
     </div>
     <div class="views" id="views">
       <div class="card v3d">
-        <div class="vhead"><h2>Vista 3D</h2><span class="hint"><span class="deskonly">Arraste para girar · </span><span class="mobonly">Deslize na horizontal para girar · </span><button type="button" id="bTop" class="mini">Ver de cima</button></span></div>
+        <div class="vhead"><h2>Vista 3D</h2><span class="hint"><span class="deskonly">Arraste para girar · clique no piso para escolher um ponto · </span><span class="mobonly">Deslize para girar · toque no piso · </span><button type="button" id="bTop" class="mini">Ver de cima</button></span></div>
         <div class="cvw"><canvas id="c3d" aria-label="Vista 3D do cômodo com a mancha de sol"></canvas></div>
       </div>
       <div class="card vplan">
-        <div class="vhead"><h2>Planta rebatida</h2><span class="hint">Paredes abertas para fora; a borda junto ao piso é o rodapé</span></div>
+        <div class="vhead"><h2>Planta rebatida</h2><span class="hint">Paredes abertas para fora · toque no piso para escolher um ponto</span></div>
         <div class="cvw"><canvas id="cPlan" aria-label="Planta do cômodo com paredes rebatidas"></canvas></div>
       </div>
     </div>
+    <div class="pickbar" id="pickBar"></div>
 
     <div class="card">
       <div class="vhead"><h2>Luz natural no dia · sem sol direto</h2><span class="hint" id="dayLuxSub"></span></div>
       <div class="lxleg" id="dayLuxLeg"></div>
       <div class="cvw" style="margin-top:6px"><canvas id="cDayLux" aria-label="Iluminância natural ao longo do dia em três pontos do cômodo"></canvas></div>
-      <div class="hint" style="margin-top:4px">Iluminância na altura do plano de leitura, nos pontos marcados na planta (modo Luz), sem contar a mancha de sol direto (céu + luz refletida nas superfícies, incluindo o sol que bate no piso). Escala logarítmica. Toque no gráfico para mudar a hora.</div>
+      <div class="hint" style="margin-top:4px">Iluminância na altura do plano de leitura, nos pontos marcados na planta (modo Luz) e no ponto escolhido, sem contar a mancha de sol direto (céu + luz refletida nas superfícies, incluindo o sol que bate no piso). Escala logarítmica. Toque no gráfico para mudar a hora.</div>
     </div>
 
     <div class="card">
@@ -321,6 +327,7 @@ header .sub{flex-basis:100%}
             <option value="floor">Área iluminada no piso (m²)</option>
             <option value="power">Potência solar direta entrando (W, céu limpo)</option>
             <option value="lux" id="optLux">Luz natural difusa no centro (lux)</option>
+            <option value="pt" id="optPt" hidden>Sol direto no ponto escolhido (W/m², céu limpo)</option>
           </select>
         </div>
       </div>
@@ -330,7 +337,7 @@ header .sub{flex-basis:100%}
     </div>
 
     <div class="charts">
-      <div class="card"><div class="vhead"><h2>Horas de sol direto por dia</h2></div><div class="cvw"><canvas id="cHours"></canvas></div></div>
+      <div class="card"><div class="vhead"><h2>Horas de sol direto por dia</h2><span class="hint" id="hoursSub"></span></div><div class="cvw"><canvas id="cHours"></canvas></div></div>
       <div class="card"><div class="vhead"><h2>Energia solar direta por dia · kWh</h2></div><div class="cvw"><canvas id="cKwh"></canvas></div></div>
     </div>
 
@@ -343,6 +350,7 @@ header .sub{flex-basis:100%}
         <li>Os prédios à frente entram como um horizonte uniforme: abaixo da altura angular informada não passa sol, e o céu é trocado por fachadas iluminadas. O cômodo é tratado como um trapézio sem divisórias internas (móveis, armários e paredes baixas não fazem sombra).</li>
         <li>O beiral é tratado como contínuo ao longo da fachada. Medidas marcadas como estimadas não vieram de projeto e podem ser editadas.</li>
         <li>Luz natural: céu padrão CIE (limpo ou encoberto) com iluminâncias externas do IES. A parcela do céu é integrada ponto a ponto pela abertura (com recorte da parede e do beiral); a luz refletida é calculada por radiosidade entre cerca de 200 trechos de piso, teto e paredes, com transmissão do vidro e refletâncias editáveis. Referências: 300 lx é confortável para leitura; 100 lx já parece penumbra.</li>
+        <li>Ponto escolhido: toque no piso para medir a luz natural na altura do plano de leitura naquele ponto. O sol direto no ponto é testado raio a raio pela abertura, com parede, beiral, montante e folhas fechadas.</li>
         <li>Energia e potência usam irradiância direta de céu limpo (modelo de Meinel, altitude ~660 m). Não entram nuvens, luz difusa, reflexos, vidro nem obstruções externas como prédios e árvores.</li>
       </ul>
     </div>
@@ -602,8 +610,9 @@ function buildRad(){
   const mg=mapGrid(), K=new Float32Array(mg.nx*mg.ny*n);
   for(let i=0;i<mg.nx;i++) for(let j=0;j<mg.ny;j++){const d=Math.min((i+.5)*mg.c,P.L-1e-3); let u=Math.min((j+.5)*mg.c,P.W-1e-3); if(!inFloor(d,u)){const ul=leftU(d)+0.02; if((j+1)*mg.c>ul&&inFloor(d,ul)) u=ul; else continue;} K.set(wFor(d,u,LX.hwp),(i*mg.ny+j)*n);}
   const wRef=refPts().map(r=>wFor(r[1],r[2],LX.hwp));
-  const uRef=wRef.map(w=>{const u=new Float64Array(217);for(let i=0;i<n;i++){const wi=w[i];if(!wi)continue;const o=i*217;for(let c=0;c<217;c++)u[c]+=wi*V[o+c];}return u;});
-  RAD={key,pt,n,T,V,K,mg,wRef,uRef,byFace}; return RAD;
+  const uOf=w=>{const u=new Float64Array(217);for(let i=0;i<n;i++){const wi=w[i];if(!wi)continue;const o=i*217;for(let c=0;c<217;c++)u[c]+=wi*V[o+c];}return u;};
+  const uRef=wRef.map(uOf);
+  RAD={key,pt,n,T,V,K,mg,wRef,uRef,byFace,wFor,uOf}; return RAD;
 }
 function sunE0(st,R){
   const out=[]; const s=st.s; if(st.Edn<=0||st.sp.alt<=P.obs||s.Ef<=5e-4||s.U<=0) return out;
@@ -622,11 +631,45 @@ function scAt(st,G,smp,d,u,z){
     sc+=skyLum(st,ef*st.sf+lat*st.cf,ef*st.cf-lat*st.sf,up)*up*ef*q[2]/r2;}
   return LX.tau*sc;
 }
-function directAt(st,G,d,u,z){
-  const s=st.s; if(st.Edn<=0||s.Ef<=5e-4||s.U<=0||st.sp.alt<=P.obs) return 0;
+/* o raio de sol chega ao ponto (d,u,z)? volta pela direção do sol até a janela e testa folhas, montante, parede e beiral */
+function sunHits(sp,s,G,d,u,z){
+  if(sp.alt<=Math.max(0,P.obs)||s.Ef<=5e-4||s.U<=0) return false;
   const t=d/s.Ef, ui=u-s.Nr*t, zi=z+s.U*t;
-  if(zi<G.z0||zi>G.z1||!G.segs.some(q=>ui>=q[0]&&ui<=q[1])) return 0;
-  return passOut(G,ui,zi,s.Ef,-s.Nr,s.U)?LX.tau*st.Edn*s.U:0;
+  if(zi<G.z0||zi>G.z1||!G.segs.some(q=>ui>=q[0]&&ui<=q[1])) return false;
+  return passOut(G,ui,zi,s.Ef,-s.Nr,s.U);
+}
+function directAt(st,G,d,u,z){return st.Edn>0&&sunHits(st.sp,st.s,G,d,u,z)?LX.tau*st.Edn*st.s.U:0;}
+/* ---------- Ponto escolhido ---------- */
+let PICK=null;
+const pickKey=()=>PICK?nf(PICK.d,3)+','+nf(PICK.u,3)+','+LX.hwp:'-';
+function allPts(){const r=refPts(); return PICK?r.concat([['ponto escolhido',PICK.d,PICK.u]]):r;}
+function pickW(R){if(!PICK)return null; const k=pickKey(); if(!R.pk||R.pk.k!==k){const w=R.wFor(PICK.d,PICK.u,LX.hwp); R.pk={k,w,u:R.uOf(w)};} return R.pk;}
+function allW(R){const p=pickW(R); return p?R.wRef.concat([p.w]):R.wRef;}
+let ptAnnC=null;
+function getPtAnn(){
+  if(!PICK) return null; const key=luxVer+'|'+pickKey(); if(ptAnnC&&ptAnnC.key===key) return ptAnnC;
+  const G=winGeo(), irr=new Float32Array(NDAYS*ROWS), days=[];
+  for(let d=1;d<=NDAYS;d++){let cnt=0,first=null,last=null;
+    for(let r=ANN.lr0;r<=ANN.lr1;r++){const m=T0+r*STEP, sp=sunPos(d,m); if(sp.alt<=0)continue; const s=sunLocal(sp.alt,sp.az);
+      if(sunHits(sp,s,G,PICK.d,PICK.u,LX.hwp)){irr[(d-1)*ROWS+r]=dni(sp.alt)*s.U; cnt++; if(first===null)first=m; last=m;}}
+    days.push({hours:cnt*STEP/60,first,last});}
+  ptAnnC={key,irr,days}; return ptAnnC;
+}
+function setPick(d,u){
+  if(d===null){PICK=null;} else {if(!inFloor(d,u)) return; PICK={d:Math.round(d*100)/100,u:Math.round(u*100)/100};}
+  ROOM.pick=PICK?{d:PICK.d,u:PICK.u}:null; saveRooms();
+  if(!PICK&&state.metric==='pt'){state.metric='total'; document.getElementById('metric').value='total';}
+  pickUI(); renderInstant();
+}
+function pickUI(){
+  const bar=document.getElementById('pickBar'), opt=document.getElementById('optPt');
+  opt.hidden=!PICK; opt.disabled=!PICK;
+  const rp=refPts(), mid=Math.min(1,rp.length-1);
+  document.getElementById('optLux').textContent='Luz natural difusa · '+(PICK?'ponto escolhido':rp[mid][0])+' (lux)';
+  if(!PICK){bar.innerHTML='<span class="hint">Toque no piso, na vista 3D ou na planta, para ver os gráficos de luz de um ponto do cômodo.</span>'; return;}
+  const N=faceNames(), side=N.left.replace('Parede ',''), dl=PICK.u-leftU(PICK.d);
+  bar.innerHTML='<span><i class="dot"></i><b>Ponto escolhido</b> · '+nf(PICK.d)+' m da janela · '+nf(dl)+' m da parede '+side+' · a '+nf(LX.hwp)+' m do piso</span><button type="button" class="mini" id="bPickClr">Limpar ponto</button>';
+  document.getElementById('bPickClr').addEventListener('click',()=>setPick(null));
 }
 function refPts(){
   if(ROOM.refs) return ROOM.refs.filter(r=>r[1]<P.L&&inFloor(r[1],r[2]));
@@ -636,8 +679,8 @@ function refPts(){
 const smpStep=n=>{const G=winGeo(),A=G.segs.reduce((a,q)=>a+(q[1]-q[0]),0)*(G.z1-G.z0);return Math.max(0.1,Math.sqrt(A/n));};
 function luxPoints(doy,minute,step){
   const st=skyState(doy,minute); if(!st) return null;
-  const R=buildRad(), G=winGeo(), smp=winSamples(G,step||smpStep(160)), E0=radE0(st,R);
-  return refPts().map(([n,d,u],k)=>scAt(st,G,smp,d,u,LX.hwp)+dotv(R.wRef[k],E0));
+  const R=buildRad(), G=winGeo(), smp=winSamples(G,step||smpStep(160)), E0=radE0(st,R), W=allW(R);
+  return allPts().map(([n,d,u],k)=>scAt(st,G,smp,d,u,LX.hwp)+dotv(W[k],E0));
 }
 let luxMapC=null, luxMapKey='';
 function getLuxMap(){
@@ -651,20 +694,21 @@ function getLuxMap(){
 }
 let dayLuxC=null, dayLuxKey='';
 function getDayLux(doy){
-  const key=luxVer+'|'+doy+'|'+SKY; if(dayLuxC&&dayLuxKey===key) return dayLuxC;
-  const v=refPts().map(()=>[]), t=[];
-  for(let r=0;r<ROWS;r++){const m=T0+r*STEP, p=luxPoints(doy,m); if(!p)continue; t.push(m); p.forEach((x,i)=>v[i].push(x));}
-  dayLuxC={t,v}; dayLuxKey=key; return dayLuxC;
+  const key=luxVer+'|'+doy+'|'+SKY+'|'+pickKey(); if(dayLuxC&&dayLuxKey===key) return dayLuxC;
+  const v=allPts().map(()=>[]), t=[], hit=[], G=winGeo();
+  for(let r=0;r<ROWS;r++){const m=T0+r*STEP, p=luxPoints(doy,m); if(!p)continue; t.push(m); p.forEach((x,i)=>v[i].push(x));
+    if(PICK){const sp=sunPos(doy,m); hit.push(sunHits(sp,sunLocal(sp.alt,sp.az),G,PICK.d,PICK.u,LX.hwp));}}
+  dayLuxC={t,v,hit}; dayLuxKey=key; return dayLuxC;
 }
 function getAnnLux(){
-  if(ANN.lux&&ANN.luxKey===luxVer+'|'+SKY) return ANN.lux;
-  const a=new Float32Array(NDAYS*ROWS), G=winGeo(), smp=winSamples(G,smpStep(40)), mid=Math.min(1,refPts().length-1), rp=refPts()[mid], d=rp[1], uu=rp[2], R=buildRad(), wv=R.wRef[mid], uv=R.uRef[mid];
+  const akey=luxVer+'|'+SKY+'|'+pickKey(); if(ANN.lux&&ANN.luxKey===akey) return ANN.lux;
+  const a=new Float32Array(NDAYS*ROWS), G=winGeo(), smp=winSamples(G,smpStep(40)), R=buildRad(), pk=pickW(R), mid=Math.min(1,refPts().length-1), rp=PICK?[0,PICK.d,PICK.u]:refPts()[mid], d=rp[1], uu=rp[2], wv=pk?pk.w:R.wRef[mid], uv=pk?pk.u:R.uRef[mid];
   const val=st=>{let v=scAt(st,G,smp,d,uu,LX.hwp)+dotv(uv,skyCells(st)); for(const [i,x] of sunE0(st,R)) v+=wv[i]*x; return v;};
   for(let dd=1;dd<=NDAYS;dd+=2) for(let r=ANN.lr0;r<=ANN.lr1;r+=2){const i=(dd-1)*ROWS+r;
     const st=skyState(dd,T0+r*STEP); if(st) a[i]=val(st);
     if(r+1<=ANN.lr1&&sunPos(dd,T0+(r+1)*STEP).alt>0.5) a[i+1]=a[i]>0?a[i]:(a[i+2]||0);}
   for(let dd=2;dd<=NDAYS;dd+=2){const o=(dd-1)*ROWS,p=(dd-2)*ROWS,q=dd<NDAYS?dd*ROWS:p; for(let r=0;r<ROWS;r++){const x=a[p+r],y=a[q+r]; a[o+r]=x>0&&y>0?(x+y)/2:(x>0&&sunPos(dd,T0+r*STEP).alt>0.5?x:0);}}
-  ANN.lux=a; ANN.luxKey=luxVer+'|'+SKY; return a;
+  ANN.lux=a; ANN.luxKey=akey; return a;
 }
 const LXMIN=30, LXMAX=10000;
 const luxT=v=>clamp(Math.log10(Math.max(v,1)/LXMIN)/Math.log10(LXMAX/LXMIN),0,1);
@@ -695,7 +739,7 @@ function setupCanvas(cv,h){
 const sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]], dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
 const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
 const norm=a=>{const l=Math.hypot(...a);return [a[0]/l,a[1]/l,a[2]/l];};
-let E=null;
+let E=null, g3d=null, gPlan=null;
 function draw3D(){
   const cv=document.getElementById('c3d'), w0=boxW(cv.parentElement);
   const {ctx,w,h}=setupCanvas(cv,Math.round(clamp(w0*0.82,240,470)));
@@ -715,6 +759,7 @@ function draw3D(){
   for(const p of fitPts){const r=raw(p);mnx=Math.min(mnx,r[0]);mxx=Math.max(mxx,r[0]);mny=Math.min(mny,r[1]);mxy=Math.max(mxy,r[1]);}
   const pad=22, f=Math.min((w-2*pad)/(mxx-mnx),(h-2*pad)/(mxy-mny)), cx=(mnx+mxx)/2, cy=(mny+mxy)/2;
   const pr=p=>{const r=raw(p);return [w/2+f*(r[0]-cx),h/2-f*(r[1]-cy)];};
+  g3d={cam,fwd,right,up,f,cx,cy,w,h};
   const path=pts=>{ctx.beginPath();pts.forEach((p,i)=>{const q=pr(p);i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]);});ctx.closePath();};
   const poly=(pts,fill,stroke,lw=1,dash)=>{path(pts);if(fill){ctx.fillStyle=fill;ctx.fill();}if(stroke){ctx.setLineDash(dash||[]);ctx.strokeStyle=stroke;ctx.lineWidth=lw;ctx.stroke();ctx.setLineDash([]);}};
   const line=(a,b,c,lw=1,dash)=>{const p=pr(a),q=pr(b);ctx.beginPath();ctx.moveTo(p[0],p[1]);ctx.lineTo(q[0],q[1]);ctx.setLineDash(dash||[]);ctx.strokeStyle=c;ctx.lineWidth=lw;ctx.stroke();ctx.setLineDash([]);};
@@ -755,6 +800,10 @@ function draw3D(){
       line([0,u,z],[s.Ef*t,u+s.Nr*t,z-s.U*t],alpha(C.sun,0.45),1);
     }
   }
+  // ponto escolhido
+  if(PICK){const pk=css('--pick'), a=[PICK.d,PICK.u,0], b=[PICK.d,PICK.u,LX.hwp];
+    line(a,b,pk,1.5,[3,3]); const q=pr(b); ctx.beginPath(); ctx.arc(q[0],q[1],6,0,7); ctx.fillStyle=css('--surface'); ctx.fill(); ctx.lineWidth=2.5; ctx.strokeStyle=pk; ctx.stroke();
+    ctx.beginPath(); ctx.arc(q[0],q[1],2.5,0,7); ctx.fillStyle=pk; ctx.fill(); const q0=pr(a); ctx.beginPath(); ctx.arc(q0[0],q0[1],2,0,7); ctx.fill();}
   // sol
   if(!HT&&sunUp&&front){
     line(wc,sunPt,alpha(C.sun,0.8),1.5,[4,4]);
@@ -782,7 +831,7 @@ function drawPlan(){
   let X0=1e9,X1=-1e9,Y0=1e9,Y1=-1e9; for(const k in T) for(const q of corners(k)){X0=Math.min(X0,q[0]);X1=Math.max(X1,q[0]);Y0=Math.min(Y0,q[1]);Y1=Math.max(Y1,q[1]);}
   const pad=14, sc=Math.min((w-2*pad)/(X1-X0),(h-2*pad)/(Y1-Y0));
   const ox=(w-sc*(X1-X0))/2-sc*X0, oy=(h-sc*(Y1-Y0))/2-sc*Y0;
-  const S=(X,Y)=>[ox+sc*X,oy+sc*Y];
+  const S=(X,Y)=>[ox+sc*X,oy+sc*Y]; gPlan={ox,oy,sc};
   const C={floor:css('--floor'),a:css('--wall-a'),b:css('--wall-b'),line:css('--line'),ink:css('--ink'),ink2:css('--ink-2'),ink3:css('--ink-3'),sun:css('--sun'),sky:css('--sky')};
   const col={floor:C.floor,back:C.b,left:C.a,right:C.a,win:C.b};
   const pathXY=pts=>{ctx.beginPath();pts.forEach((q,i)=>{const p=S(q[0],q[1]);i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]);});ctx.closePath();};
@@ -818,6 +867,7 @@ function drawPlan(){
   // pontos de referência da luz natural
   if(mode==='lux'){ctx.fillStyle=C.ink;ctx.font='11px '+css('--font-body');ctx.textAlign='left';ctx.textBaseline='middle';
     for(const [n,d,u] of refPts()){const p=S(u,d);ctx.beginPath();ctx.arc(p[0],p[1],3.5,0,7);ctx.fill();ctx.fillText(n,p[0]+6,p[1]);}}
+  if(PICK){const pk=css('--pick'), p=S(PICK.u,PICK.d); ctx.beginPath(); ctx.arc(p[0],p[1],7,0,7); ctx.fillStyle=css('--surface'); ctx.fill(); ctx.lineWidth=2.5; ctx.strokeStyle=pk; ctx.stroke(); ctx.beginPath(); ctx.arc(p[0],p[1],2.5,0,7); ctx.fillStyle=pk; ctx.fill();}
   // rótulos
   const N=faceNames(); ctx.fillStyle=C.ink2; ctx.font='11px '+css('--font-body'); ctx.textAlign='center'; ctx.textBaseline='middle';
   for(const k of ['win','back','left','right']){const wl=Wl[k], p=S(...T[k](wl.len/2,H-0.22*H/2.7)); let ang=Math.atan2(wl.e[0],wl.e[1]); if(ang>Math.PI/2)ang-=Math.PI; if(ang<-Math.PI/2)ang+=Math.PI;
@@ -835,12 +885,12 @@ function drawPlan(){
 /* ---------- Mapa anual ---------- */
 const MSTART=[...Array(12)].map((_,m)=>Math.round((Date.UTC(P.year,m,1)-Date.UTC(P.year,0,1))/864e5)+1);
 let heatGeom=null;
-function metricInfo(){return {total:{u:'m²',d:2},floor:{u:'m²',d:2},power:{u:'W',d:0},lux:{u:'lx',d:0}}[state.metric];}
-function heatArr(){return state.metric==='lux'?getAnnLux():ANN[state.metric];}
+function metricInfo(){return {total:{u:'m²',d:2},floor:{u:'m²',d:2},power:{u:'W',d:0},lux:{u:'lx',d:0},pt:{u:'W/m²',d:0}}[state.metric];}
+function heatArr(){return state.metric==='lux'?getAnnLux():state.metric==='pt'?getPtAnn().irr:ANN[state.metric];}
 function drawHeat(){
   const cv=document.getElementById('cHeat'), narrow=boxW(cv.parentElement)<520, {ctx,w,h}=setupCanvas(cv,narrow?260:300);
   const isLux=state.metric==='lux', m={l:narrow?34:44,r:narrow?4:10,t:8,b:24}, pw=w-m.l-m.r, ph=h-m.t-m.b, r0=isLux?ANN.lr0:ANN.r0, r1=isLux?ANN.lr1:ANN.r1, nr=r1-r0+1;
-  const arr=heatArr(); let vmax=0; for(const v of arr) if(v>vmax)vmax=v;
+  const arr=heatArr(); let vmax=0; for(const v of arr) if(v>vmax)vmax=v; if(!vmax) vmax=1;
   const col=v=>isLux?ramp(luxT(v)):ramp(v/vmax);
   const cw=pw/NDAYS, rh=ph/nr;
   ctx.fillStyle=css('--surface-2'); ctx.fillRect(m.l,m.t,pw,ph);
@@ -861,6 +911,7 @@ function drawHeat(){
   heatGeom={m,pw,ph,cw,rh,tA,r0,r1};
   const mi=metricInfo();
   if(isLux) document.getElementById('heatLegend').innerHTML=luxLegend(SKY==='clear'?' · céu limpo':' · céu nublado');
+  else if(state.metric==='pt'&&!getPtAnn().days.some(x=>x.hours>0)) document.getElementById('heatLegend').innerHTML='<span>o sol direto nunca chega a este ponto (no plano a '+nf(LX.hwp)+' m)</span>';
   else document.getElementById('heatLegend').innerHTML='<span>0</span><span class="bar" style="background:'+rampCss()+'"></span><span>'+nf(vmax,mi.d)+' '+mi.u+'</span>';
 }
 function heatHit(ev){
@@ -872,10 +923,10 @@ function heatHit(ev){
 
 /* ---------- Séries diárias ---------- */
 const lineGeom={};
-function drawLine(id,vals,dec,unit){
+function drawLine(id,vals,dec,unit,alt){
   const cv=document.getElementById(id), {ctx,w,h}=setupCanvas(cv,boxW(cv.parentElement)<520?160:190);
   const m={l:40,r:12,t:12,b:24}, pw=w-m.l-m.r, ph=h-m.t-m.b;
-  const vm=Math.max(...vals)*1.05||1, p10=Math.pow(10,Math.floor(Math.log10(vm/4))), st=[1,2,2.5,5,10].map(k=>k*p10).find(k=>k>=vm/4), nt=Math.ceil(vm/st), ymax=st*nt;
+  const vm=Math.max(...vals,...(alt?alt.vals:[0]))*1.05||1, p10=Math.pow(10,Math.floor(Math.log10(vm/4))), st=[1,2,2.5,5,10].map(k=>k*p10).find(k=>k>=vm/4), nt=Math.ceil(vm/st), ymax=st*nt;
   const tdec=st<1?(st*10%1?2:1):(st%1?1:0), X=d=>m.l+(d-0.5)/NDAYS*pw, Y=v=>m.t+ph-v/ymax*ph;
   const ink2=css('--ink-2'),ink3=css('--ink-3'),sun=css('--sun'),ink=css('--ink');
   ctx.font='11px '+css('--font-mono'); ctx.textAlign='right'; ctx.textBaseline='middle';
@@ -885,21 +936,24 @@ function drawLine(id,vals,dec,unit){
   ctx.beginPath(); vals.forEach((v,i)=>{const x=X(i+1),y=Y(v); i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
   ctx.lineTo(X(NDAYS),Y(0)); ctx.lineTo(X(1),Y(0)); ctx.closePath(); ctx.fillStyle=alpha(sun,0.14); ctx.fill();
   ctx.beginPath(); vals.forEach((v,i)=>{const x=X(i+1),y=Y(v); i?ctx.lineTo(x,y):ctx.moveTo(x,y);}); ctx.strokeStyle=sun; ctx.lineWidth=2; ctx.lineJoin='round'; ctx.stroke();
+  if(alt){ctx.beginPath(); alt.vals.forEach((v,i)=>{const x=X(i+1),y=Y(v); i?ctx.lineTo(x,y):ctx.moveTo(x,y);}); ctx.strokeStyle=alt.color; ctx.lineWidth=2; ctx.stroke();}
   const d=state.doy, xs=X(d), ys=Y(vals[d-1]);
   ctx.strokeStyle=alpha(ink,0.6); ctx.lineWidth=1; ctx.setLineDash([3,3]); ctx.beginPath(); ctx.moveTo(xs,m.t); ctx.lineTo(xs,m.t+ph); ctx.stroke(); ctx.setLineDash([]);
   ctx.beginPath(); ctx.arc(xs,ys,4.5,0,7); ctx.fillStyle=sun; ctx.fill(); ctx.strokeStyle=css('--surface'); ctx.lineWidth=2; ctx.stroke();
   ctx.fillStyle=ink; ctx.font='500 12px '+css('--font-mono'); ctx.textAlign=xs>m.l+pw-90?'right':'left'; ctx.textBaseline='bottom';
   ctx.fillText(nf(vals[d-1],dec)+' '+unit,xs+(ctx.textAlign==='left'?8:-8),Math.max(m.t+14,ys-6));
-  lineGeom[id]={m,pw,ph,vals,dec,unit};
+  if(alt){const ya=Y(alt.vals[d-1]); ctx.beginPath(); ctx.arc(xs,ya,4.5,0,7); ctx.fillStyle=alt.color; ctx.fill(); ctx.strokeStyle=css('--surface'); ctx.lineWidth=2; ctx.stroke();
+    ctx.fillStyle=alt.color; ctx.textBaseline='top'; ctx.fillText(nf(alt.vals[d-1],dec)+' '+unit,xs+(ctx.textAlign==='left'?8:-8),Math.min(m.t+ph-14,ya+6));}
+  lineGeom[id]={m,pw,ph,vals,dec,unit,alt};
 }
 
 let dayLuxGeom=null;
 function drawDayLux(){
   const cv=document.getElementById('cDayLux'), narrow=boxW(cv.parentElement)<520, {ctx,w,h}=setupCanvas(cv,narrow?210:240);
   const m={l:narrow?44:52,r:10,t:10,b:24}, pw=w-m.l-m.r, ph=h-m.t-m.b, D=getDayLux(state.doy), dd=ANN.days[state.doy-1];
-  const cols=[css('--lx-1'),css('--lx-2'),css('--lx-3'),css('--ink-3')], ink2=css('--ink-2'),ink3=css('--ink-3'),ink=css('--ink'),sun=css('--sun');
-  const names=refPts().map(([n,d])=>n+' ('+nf(d,1)+' m da janela)');
-  document.getElementById('dayLuxLeg').innerHTML=names.map((n,i)=>'<span><i style="background:'+cols[i]+'"></i>'+n+'</span>').join('')+(dd.first!==null?'<span><i class="band"></i>sol direto entrando</span>':'');
+  const nr=refPts().length, pk=css('--pick'), cols=[css('--lx-1'),css('--lx-2'),css('--lx-3'),css('--ink-3')].slice(0,nr).concat(PICK?[pk]:[]), ink2=css('--ink-2'),ink3=css('--ink-3'),ink=css('--ink'),sun=css('--sun');
+  const names=allPts().map(([n,d])=>n+' ('+nf(d,1)+' m da janela)'), ptSun=PICK&&D.hit&&D.hit.some(Boolean);
+  document.getElementById('dayLuxLeg').innerHTML=names.map((n,i)=>'<span><i style="background:'+cols[i]+(PICK&&i===nr?';height:4px':'')+'"></i>'+n+'</span>').join('')+(dd.first!==null?'<span><i class="band"></i>sol direto entrando</span>':'')+(ptSun?'<span><i class="pband"></i>sol direto no ponto</span>':(PICK?'<span>sem sol direto no ponto neste dia</span>':''));
   document.getElementById('dayLuxSub').textContent=fmtDate(state.doy)+' · céu '+(SKY==='clear'?'limpo':'nublado');
   if(!D.t.length){dayLuxGeom=null;return;}
   const tA=D.t[0]-10, tB=D.t[D.t.length-1]+10, X=t=>m.l+(t-tA)/(tB-tA)*pw;
@@ -911,7 +965,8 @@ function drawDayLux(){
   {const y=Y(300); ctx.strokeStyle=alpha(ink2,0.7); ctx.setLineDash([5,4]); ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(m.l,y); ctx.lineTo(m.l+pw,y); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle=ink2; ctx.textAlign='left'; ctx.textBaseline='top'; ctx.fillText('300 lx · leitura',m.l+6,y+3);}
   ctx.textAlign='center'; ctx.textBaseline='top'; ctx.fillStyle=ink2;
   for(let t=Math.ceil(tA/60)*60;t<=tB;t+=60){ if(narrow&&(t/60)%2)continue; ctx.fillText(String(t/60).padStart(2,'0')+'h',X(t),m.t+ph+6);}
-  D.v.forEach((sr,i)=>{ctx.beginPath(); sr.forEach((v,k)=>{const x=X(D.t[k]),y=Y(v); k?ctx.lineTo(x,y):ctx.moveTo(x,y);}); ctx.strokeStyle=cols[i]; ctx.lineWidth=2; ctx.lineJoin='round'; ctx.stroke();});
+  if(ptSun){ctx.fillStyle=pk; D.hit.forEach((hh,k)=>{if(hh) ctx.fillRect(X(D.t[k]-STEP/2),m.t+ph-7,X(D.t[k]+STEP/2)-X(D.t[k]-STEP/2)+0.5,7);});}
+  D.v.forEach((sr,i)=>{ctx.beginPath(); sr.forEach((v,k)=>{const x=X(D.t[k]),y=Y(v); k?ctx.lineTo(x,y):ctx.moveTo(x,y);}); ctx.strokeStyle=cols[i]; ctx.lineWidth=PICK&&i===nr?2.75:2; ctx.lineJoin='round'; ctx.stroke();});
   if(state.minute>=tA&&state.minute<=tB){const x=X(state.minute); ctx.strokeStyle=alpha(ink,0.6); ctx.setLineDash([3,3]); ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(x,m.t); ctx.lineTo(x,m.t+ph); ctx.stroke(); ctx.setLineDash([]);
     const k=Math.round((state.minute-D.t[0])/STEP); if(k>=0&&k<D.t.length) D.v.forEach((sr,i)=>{ctx.beginPath(); ctx.arc(x,Y(sr[k]),4,0,7); ctx.fillStyle=cols[i]; ctx.fill(); ctx.strokeStyle=css('--surface'); ctx.lineWidth=1.5; ctx.stroke();});}
   dayLuxGeom={m,pw,tA,tB,D,names};
@@ -927,13 +982,17 @@ function updateTiles(){
     {now:1,k:'Área iluminada agora',v:nf(e.tot)+' m²',d:'piso '+nf(e.ar.floor)+' m² · '+walls},
     {now:1,k:'Alcance no piso agora',v:e.ar.floor>0?nf(e.depth)+' m':'—',d:'a partir da parede da janela'},
     {now:1,k:'Potência direta agora',v:nf(e.power,0)+' W',d:'céu limpo, abertura efetiva '+nf(e.Aeff*1e4/1e4,2)+' m²'},
-    (()=>{const p=luxPoints(state.doy,state.minute), rp=refPts(), mid=Math.min(1,rp.length-1); return {now:1,k:'Luz natural · '+rp[mid][0],v:p?fmtLux(p[mid])+' lx':'—',d:p?rp.map((r,i)=>i===mid?null:r[0]+' '+fmtLux(p[i])).filter(Boolean).join(' · ')+' lx · céu '+(SKY==='clear'?'limpo':'nublado'):'sol abaixo do horizonte'};})(),
-    {k:'Sol direto em '+fmtDate(state.doy),v:dd.hours>0?nf(dd.hours,1)+' h':'0 h',d:dd.first!==null?'das '+fmtTime(dd.first)+' às '+fmtTime(dd.last+STEP):'sem sol direto neste dia'},
+    (()=>{const p=luxPoints(state.doy,state.minute), rp=allPts(), mid=PICK?rp.length-1:Math.min(1,rp.length-1);
+      const hit=PICK&&p&&sunHits(e.sp,e.s,winGeo(),PICK.d,PICK.u,LX.hwp);
+      return {now:1,k:'Luz natural · '+rp[mid][0],v:p?fmtLux(p[mid])+' lx':'—',d:p?(hit?'+ sol direto no ponto agora · ':'')+rp.map((r,i)=>i===mid?null:r[0]+' '+fmtLux(p[i])).filter(Boolean).join(' · ')+' lx · céu '+(SKY==='clear'?'limpo':'nublado'):'sol abaixo do horizonte'};})(),
+    {k:'Sol direto em '+fmtDate(state.doy),v:dd.hours>0?nf(dd.hours,1)+' h':'0 h',d:(dd.first!==null?'das '+fmtTime(dd.first)+' às '+fmtTime(dd.last+STEP):'sem sol direto neste dia')+(()=>{const pa=getPtAnn(); if(!pa) return ''; const q=pa.days[state.doy-1]; return ' · no ponto: '+(q.hours>0?nf(q.hours,1)+' h, '+fmtTime(q.first)+'–'+fmtTime(q.last+STEP):'nenhum');})()},
     {k:'Energia direta no dia',v:nf(dd.kwh,2)+' kWh',d:'maior mancha no piso '+nf(dd.maxF)+' m², alcance '+nf(dd.maxD)+' m'},
   ];
   document.getElementById('tiles').innerHTML=tiles.map(t=>`<div class="tile${t.now?' now':''}"><span class="k">${t.k}</span><span class="v">${t.v}</span><span class="d">${t.d}</span></div>`).join('');
 }
-function renderInstant(){E=evalAt(state.doy,state.minute); updateTiles(); draw3D(); drawPlan(); drawDayLux(); drawHeat(); drawLine('cHours',ANN.days.map(d=>d.hours),1,'h'); drawLine('cKwh',ANN.days.map(d=>d.kwh),2,'kWh');}
+function drawHours(){const pa=getPtAnn(); drawLine('cHours',ANN.days.map(d=>d.hours),1,'h',pa?{vals:pa.days.map(d=>d.hours),color:css('--pick'),name:'ponto'}:null);
+  document.getElementById('hoursSub').innerHTML=pa?'<span style="color:var(--sun)">●</span> cômodo · <span style="color:var(--pick)">●</span> ponto escolhido':'';}
+function renderInstant(){E=evalAt(state.doy,state.minute); updateTiles(); draw3D(); drawPlan(); drawDayLux(); drawHeat(); drawHours(); drawLine('cKwh',ANN.days.map(d=>d.kwh),2,'kWh');}
 function syncTimeRange(){const a=T0+ANN.lr0*STEP,b=T0+(ANN.lr1+1)*STEP; sMin.min=a; sMin.max=b; state.minute=clamp(state.minute,a,b); sMin.value=state.minute;}
 function renderAll(){readRamp(); leafLabels(); syncTimeRange(); renderInstant();}
 
@@ -950,7 +1009,8 @@ function readParams(){
   if(nl.hwp<0||nl.hwp>=np.H){err.textContent='O plano de leitura precisa ficar entre o piso e o teto.';return false;}
   if(np.obs<0||np.obs>80){err.textContent='Use uma altura angular dos prédios entre 0° e 80°.';return false;}
   if(Math.abs(np.lat)>66){err.textContent='Use uma latitude entre −66° e 66°.';return false;}
-  err.textContent=''; Object.assign(P,np); Object.assign(LX,nl); roomGeo(); CELL=clamp(Math.max(P.L,P.W)/90,0.05,0.15); saveRooms(); return true;
+  err.textContent=''; Object.assign(P,np); Object.assign(LX,nl); roomGeo(); CELL=clamp(Math.max(P.L,P.W)/90,0.05,0.15);
+  if(PICK&&!inFloor(PICK.d,PICK.u)){PICK=null; ROOM.pick=null;} saveRooms(); if(document.getElementById('pickBar')) pickUI(); return true;
 }
 /* ---------- Cômodos ---------- */
 const ROOMS={
@@ -964,9 +1024,9 @@ const ROOMS={
 };
 const ROOM_DEFAULTS=JSON.parse(JSON.stringify(ROOMS));
 let ROOM_ID='valinhos', ROOM=ROOMS.valinhos;
-function saveRooms(){ROOM.P=Object.assign({},ROOM.P,pickP()); ROOM.LX=Object.assign({},LX); try{localStorage.setItem('insol-rooms-v1',JSON.stringify({id:ROOM_ID,rooms:{valinhos:{P:ROOMS.valinhos.P,LX:ROOMS.valinhos.LX},sp:{P:ROOMS.sp.P,LX:ROOMS.sp.LX}}}));}catch(_){}}
+function saveRooms(){ROOM.P=Object.assign({},ROOM.P,pickP()); ROOM.LX=Object.assign({},LX); try{localStorage.setItem('insol-rooms-v1',JSON.stringify({id:ROOM_ID,rooms:{valinhos:{P:ROOMS.valinhos.P,LX:ROOMS.valinhos.LX,pick:ROOMS.valinhos.pick||null},sp:{P:ROOMS.sp.P,LX:ROOMS.sp.LX,pick:ROOMS.sp.pick||null}}}));}catch(_){}}
 function pickP(){const o={};for(const k in ROOM_DEFAULTS[ROOM_ID].P) o[k]=P[k];return o;}
-function loadRooms(){try{const j=JSON.parse(localStorage.getItem('insol-rooms-v1')||'null'); if(!j)return; for(const k in j.rooms) if(ROOMS[k]){Object.assign(ROOMS[k].P,j.rooms[k].P);Object.assign(ROOMS[k].LX,j.rooms[k].LX);} if(ROOMS[j.id]) ROOM_ID=j.id;}catch(_){}}
+function loadRooms(){try{const j=JSON.parse(localStorage.getItem('insol-rooms-v1')||'null'); if(!j)return; for(const k in j.rooms) if(ROOMS[k]){Object.assign(ROOMS[k].P,j.rooms[k].P);Object.assign(ROOMS[k].LX,j.rooms[k].LX);ROOMS[k].pick=j.rooms[k].pick||null;} if(ROOMS[j.id]) ROOM_ID=j.id;}catch(_){}}
 function fillInputs(){
   const set=(id,v)=>{document.getElementById(id).value=+(+v).toFixed(4);};
   const p=ROOM.P,l=ROOM.LX;
@@ -980,11 +1040,11 @@ function fillInputs(){
   document.querySelectorAll('[data-room]').forEach(b=>{const on=b.dataset.room===ROOM_ID;b.classList.toggle('on',on);b.setAttribute('aria-selected',on);});
 }
 function selectRoom(id){
-  ROOM_ID=id; ROOM=ROOMS[id]; Object.assign(P,{closeL:false,closeR:false},ROOM.P); Object.assign(LX,ROOM.LX);
+  ROOM_ID=id; ROOM=ROOMS[id]; Object.assign(P,{closeL:false,closeR:false},ROOM.P); Object.assign(LX,ROOM.LX); PICK=ROOM.pick?{d:ROOM.pick.d,u:ROOM.pick.u}:null;
   fillInputs(); if(!readParams()) return;
   luxVer++; ANN=computeAnnual(); dayHeat=null; yearHeat=null; luxMapC=null; dayLuxC=null;
-  const rp=refPts(); document.getElementById('optLux').textContent='Luz natural difusa · '+rp[Math.min(1,rp.length-1)][0]+' (lux)';
-  renderAll();
+  if(!PICK&&state.metric==='pt'){state.metric='total'; document.getElementById('metric').value='total';}
+  pickUI(); renderAll();
 }
 document.querySelectorAll('[data-room]').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.room!==ROOM_ID){stopPlay(); selectRoom(b.dataset.room);}}));
 let pTimer=null;
@@ -1014,7 +1074,7 @@ document.querySelectorAll('[data-leaf]').forEach(b=>b.addEventListener('click',(
   luxVer++; ANN=computeAnnual(); dayHeat=null; yearHeat=null; renderAll();
 }));
 function leafLabels(){document.getElementById('lblL').textContent='lado '+cardinal(P.facade-90); document.getElementById('lblR').textContent='lado '+cardinal(P.facade+90);}
-document.getElementById('metric').addEventListener('change',e=>{state.metric=e.target.value; if(state.metric==='lux'&&!(ANN.lux&&ANN.luxKey===luxVer+'|'+SKY)){document.getElementById('heatLegend').textContent='Calculando a luz do ano inteiro…'; setTimeout(drawHeat,20);} else drawHeat();});
+document.getElementById('metric').addEventListener('change',e=>{state.metric=e.target.value; if(state.metric==='pt'&&!PICK){state.metric='total'; e.target.value='total';} if(state.metric==='lux'&&!(ANN.lux&&ANN.luxKey===luxVer+'|'+SKY+'|'+pickKey())){document.getElementById('heatLegend').textContent='Calculando a luz do ano inteiro…'; setTimeout(drawHeat,20);} else drawHeat();});
 
 // animação
 const bPlay=document.getElementById('bPlay'); let lastTs=0;
@@ -1040,19 +1100,26 @@ document.getElementById('bTop').addEventListener('click',e=>{const top=state.vie
 document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('on',x===b));
   document.getElementById('views').classList.toggle('show-plan',b.dataset.view==='plan'); draw3D(); drawPlan();}));
-c3d.addEventListener('pointerup',()=>drag=null); c3d.addEventListener('pointercancel',()=>drag=null);
+function pick3D(e){
+  const g=g3d; if(!g) return; const b=c3d.getBoundingClientRect(), sx=e.clientX-b.left, sy=e.clientY-b.top;
+  const rx=(sx-g.w/2)/g.f+g.cx, ry=-(sy-g.h/2)/g.f+g.cy, dir=[g.fwd[0]+rx*g.right[0]+ry*g.up[0],g.fwd[1]+rx*g.right[1]+ry*g.up[1],g.fwd[2]+rx*g.right[2]+ry*g.up[2]];
+  if(dir[2]>=-1e-9) return; const t=-g.cam[2]/dir[2], d=g.cam[0]+t*dir[0], u=g.cam[1]+t*dir[1];
+  if(inFloor(d,u)) setPick(d,u);
+}
+c3d.addEventListener('pointerup',e=>{if(drag&&Math.hypot(e.clientX-drag.x,e.clientY-drag.y)<6) pick3D(e); drag=null;}); c3d.addEventListener('pointercancel',()=>drag=null);
+document.getElementById('cPlan').addEventListener('click',e=>{const g=gPlan; if(!g) return; const b=e.currentTarget.getBoundingClientRect(), u=(e.clientX-b.left-g.ox)/g.sc, d=(e.clientY-b.top-g.oy)/g.sc; if(inFloor(d,u)) setPick(d,u);});
 
 // tooltips
 const tip=document.getElementById('tip');
 function showTip(e,html){tip.innerHTML=html; tip.style.opacity=1; const x=e.clientX+14,y=e.clientY+14; tip.style.left=Math.min(x,window.innerWidth-tip.offsetWidth-8)+'px'; tip.style.top=Math.min(y,window.innerHeight-tip.offsetHeight-8)+'px';}
 const hideTip=()=>tip.style.opacity=0;
 const cHeat=document.getElementById('cHeat');
-cHeat.addEventListener('pointermove',e=>{const h=heatHit(e); if(!h){hideTip();return;} const v=heatArr()[(h.doy-1)*ROWS+h.r], mi=metricInfo(); showTip(e,fmtDate(h.doy)+' · '+fmtTime(h.minute)+'<br>'+(v>0?nf(v,mi.d)+' '+mi.u:(state.metric==='lux'?'noite':'sem sol direto')));});
+cHeat.addEventListener('pointermove',e=>{const h=heatHit(e); if(!h){hideTip();return;} const v=heatArr()[(h.doy-1)*ROWS+h.r], mi=metricInfo(); showTip(e,fmtDate(h.doy)+' · '+fmtTime(h.minute)+'<br>'+(v>0?nf(v,mi.d)+' '+mi.u:(state.metric==='lux'?'noite':state.metric==='pt'?'sem sol direto no ponto':'sem sol direto')));});
 cHeat.addEventListener('pointerleave',hideTip);
 cHeat.addEventListener('click',e=>{const h=heatHit(e); if(!h)return; state.doy=h.doy; sDay.value=h.doy; setMin(h.minute+STEP/2);});
 for(const id of ['cHours','cKwh']){
   const cv=document.getElementById(id);
-  cv.addEventListener('pointermove',e=>{const g=lineGeom[id]; if(!g)return; const b=cv.getBoundingClientRect(), x=e.clientX-b.left-g.m.l; if(x<0||x>g.pw){hideTip();return;} const d=clamp(Math.floor(x/g.pw*NDAYS)+1,1,NDAYS); showTip(e,fmtDate(d)+' · '+nf(g.vals[d-1],g.dec)+' '+g.unit);});
+  cv.addEventListener('pointermove',e=>{const g=lineGeom[id]; if(!g)return; const b=cv.getBoundingClientRect(), x=e.clientX-b.left-g.m.l; if(x<0||x>g.pw){hideTip();return;} const d=clamp(Math.floor(x/g.pw*NDAYS)+1,1,NDAYS); showTip(e,fmtDate(d)+' · '+(g.alt?'cômodo ':'')+nf(g.vals[d-1],g.dec)+' '+g.unit+(g.alt?'<br>'+g.alt.name+' '+nf(g.alt.vals[d-1],g.dec)+' '+g.unit:''));});
   cv.addEventListener('pointerleave',hideTip);
   cv.addEventListener('click',e=>{const g=lineGeom[id], b=cv.getBoundingClientRect(), x=e.clientX-b.left-g.m.l; if(x<0||x>g.pw)return; setDay(Math.floor(x/g.pw*NDAYS)+1);});
   cv.style.cursor='pointer';
@@ -1060,7 +1127,7 @@ for(const id of ['cHours','cKwh']){
 
 {const cv=document.getElementById('cDayLux'); cv.style.cursor='pointer';
   const tAt=e=>{const g=dayLuxGeom; if(!g)return null; const b=cv.getBoundingClientRect(), x=e.clientX-b.left-g.m.l; if(x<0||x>g.pw)return null; return clamp(Math.round((g.tA+x/g.pw*(g.tB-g.tA)-g.D.t[0])/STEP),0,g.D.t.length-1);};
-  cv.addEventListener('pointermove',e=>{const k=tAt(e); if(k===null){hideTip();return;} const g=dayLuxGeom; showTip(e,fmtTime(g.D.t[k])+'<br>'+g.names.map((n,i)=>n.split(' (')[0]+': '+fmtLux(g.D.v[i][k])+' lx').join('<br>'));});
+  cv.addEventListener('pointermove',e=>{const k=tAt(e); if(k===null){hideTip();return;} const g=dayLuxGeom; showTip(e,fmtTime(g.D.t[k])+'<br>'+g.names.map((n,i)=>n.split(' (')[0]+': '+fmtLux(g.D.v[i][k])+' lx').join('<br>')+(PICK&&g.D.hit&&g.D.hit[k]?'<br>+ sol direto no ponto':''));});
   cv.addEventListener('pointerleave',hideTip);
   cv.addEventListener('click',e=>{const k=tAt(e); if(k!==null) setMin(dayLuxGeom.D.t[k]);});}
 // tema e redimensionamento
