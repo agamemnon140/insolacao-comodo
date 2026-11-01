@@ -6,6 +6,8 @@ Simulador de sol direto e luz natural em dois cômodos: quarto com janela a lest
 - Mapa anual dia × hora (área iluminada, área no piso ou potência)
 - Horas de sol direto e energia (kWh, céu limpo) por dia
 - Folhas esquerda/direita fecháveis; medidas, beiral e orientação editáveis
+- Ponto escolhido no piso: luz natural, sol direto e horas de sol naquele ponto
+- Furos na janela (câmara escura): trajeto do ponto de luz no piso e nas paredes ao longo do dia
 
 Posição solar pelo algoritmo da NOAA; a abertura efetiva (espessura da parede, beiral, montante) é projetada e recortada contra piso e paredes.
 
