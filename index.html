@@ -24,7 +24,7 @@
   --sun:#ec8a06; --sun-ink:#9a5200; --sun-soft:rgba(236,138,6,.16);
   --floor:#e6e9ee; --wall-a:#d7dce4; --wall-b:#cdd3dd; --sky:#f6f8fb;
   --seq-0:#fdf0d5; --seq-1:#fcd892; --seq-2:#f8bb4f; --seq-3:#f09a22; --seq-4:#d9770c; --seq-5:#ad5609; --seq-6:#743806;
-  --lx-1:#6da7ec; --lx-2:#2a78d6; --lx-3:#104281; --pick:#c2185b; --pick-soft:rgba(194,24,91,.16);
+  --lx-1:#6da7ec; --lx-2:#2a78d6; --lx-3:#104281; --pick:#c2185b; --pick-soft:rgba(194,24,91,.16); --h-1:#6d28d9; --h-2:#0e8a7c; --h-3:#b4235a; --h-4:#1d4ed8;
   --font-display:"IBM Plex Sans Condensed","IBM Plex Sans",system-ui,sans-serif;
   --font-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
   --font-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
@@ -36,7 +36,7 @@
     --sun:#f6a623; --sun-ink:#fbc366; --sun-soft:rgba(246,166,35,.16);
     --floor:#2a3039; --wall-a:#323943; --wall-b:#39414c; --sky:#1d222a;
     --seq-0:#3b2810; --seq-1:#68420f; --seq-2:#985f0f; --seq-3:#c97f12; --seq-4:#eda02b; --seq-5:#fbc366; --seq-6:#ffe3a8;
-    --lx-1:#cde2fb; --lx-2:#6da7ec; --lx-3:#3987e5; --pick:#f06292; --pick-soft:rgba(240,98,146,.2);
+    --lx-1:#cde2fb; --lx-2:#6da7ec; --lx-3:#3987e5; --pick:#f06292; --pick-soft:rgba(240,98,146,.2); --h-1:#a78bfa; --h-2:#2dd4bf; --h-3:#f472b6; --h-4:#60a5fa;
     color-scheme:dark;
   }
 }
@@ -45,7 +45,7 @@
   --sun:#f6a623; --sun-ink:#fbc366; --sun-soft:rgba(246,166,35,.16);
   --floor:#2a3039; --wall-a:#323943; --wall-b:#39414c; --sky:#1d222a;
   --seq-0:#3b2810; --seq-1:#68420f; --seq-2:#985f0f; --seq-3:#c97f12; --seq-4:#eda02b; --seq-5:#fbc366; --seq-6:#ffe3a8;
-  --lx-1:#cde2fb; --lx-2:#6da7ec; --lx-3:#3987e5; --pick:#f06292; --pick-soft:rgba(240,98,146,.2);
+  --lx-1:#cde2fb; --lx-2:#6da7ec; --lx-3:#3987e5; --pick:#f06292; --pick-soft:rgba(240,98,146,.2); --h-1:#a78bfa; --h-2:#2dd4bf; --h-3:#f472b6; --h-4:#60a5fa;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -126,6 +126,17 @@ header .sub{flex-basis:100%}
 .pickbar b{font-weight:600;color:var(--ink)}
 #cPlan{cursor:crosshair}
 .lxleg i.pband{width:14px;height:10px;border-radius:2px;background:var(--pick-soft);border:1px solid var(--pick)}
+.holes{display:grid;gap:8px;border-top:1px solid var(--line);padding-top:14px}
+.holes .lt{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.holes .lt b{font-weight:600}
+.hrow{display:grid;grid-template-columns:auto 1fr 1fr auto;gap:6px;align-items:end}
+.hrow .hn{width:20px;height:20px;border-radius:50%;color:#fff;font:600 11px/20px var(--font-body);text-align:center;margin-bottom:3px}
+.hrow label{display:grid;gap:2px;font-size:11px;color:var(--ink-3)}
+.hrow button{padding:4px 8px;margin-bottom:1px}
+.holebar{display:grid;gap:4px;font-size:13px;color:var(--ink-2);padding:0 2px}
+.holebar[hidden]{display:none}
+.holebar i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.holebar b{font-weight:600;color:var(--ink)}
 .modebar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
 .modebar .legend{margin-top:0;flex:1 1 280px;justify-content:flex-end}
 .modebar .legend span{white-space:nowrap}
@@ -205,6 +216,12 @@ header .sub{flex-basis:100%}
           </div>
         </div>
         <p class="hint leafnote" style="margin:0">Esquerda e direita para quem está dentro do cômodo olhando pela janela. Folha fechada bloqueia o sol, como uma veneziana ou folha cega.</p>
+        <div class="holes">
+          <div class="lt"><b>Furos na janela</b><span class="hint">ver no modo Furos</span></div>
+          <div id="holeList" style="display:grid;gap:6px"></div>
+          <div><button type="button" class="mini" id="bHoleAdd">+ Adicionar furo</button></div>
+          <p class="hint" style="margin:0">Posição do furo medida a partir do canto inferior esquerdo da janela, vista de dentro. O furo fica na face interna da parede; o recorte da parede e o beiral decidem quando o sol passa por ele. Feche as folhas para ver só a luz dos furos.</p>
+        </div>
         <p class="hint" id="noLeaves" style="margin:0" hidden>Envidraçamento de correr em vidro incolor, sem folhas opacas: abrir ou fechar os vidros não muda o sol que entra. Ajuste as medidas e a orientação na outra aba.</p>
       </div>
       <div class="tabpane" id="tab-medidas" role="tabpanel" hidden>
@@ -287,6 +304,7 @@ header .sub{flex-basis:100%}
           <button type="button" data-mode="day">Dia</button>
           <button type="button" data-mode="year">Ano</button>
           <button type="button" data-mode="lux">Luz</button>
+          <button type="button" data-mode="holes">Furos</button>
         </div>
       </div>
       <div class="row">
@@ -309,6 +327,7 @@ header .sub{flex-basis:100%}
       </div>
     </div>
     <div class="pickbar" id="pickBar"></div>
+    <div class="holebar" id="holeBar" hidden></div>
 
     <div class="card">
       <div class="vhead"><h2>Luz natural no dia · sem sol direto</h2><span class="hint" id="dayLuxSub"></span></div>
@@ -351,6 +370,7 @@ header .sub{flex-basis:100%}
         <li>O beiral é tratado como contínuo ao longo da fachada. Medidas marcadas como estimadas não vieram de projeto e podem ser editadas.</li>
         <li>Luz natural: céu padrão CIE (limpo ou encoberto) com iluminâncias externas do IES. A parcela do céu é integrada ponto a ponto pela abertura (com recorte da parede e do beiral); a luz refletida é calculada por radiosidade entre cerca de 200 trechos de piso, teto e paredes, com transmissão do vidro e refletâncias editáveis. Referências: 300 lx é confortável para leitura; 100 lx já parece penumbra.</li>
         <li>Ponto escolhido: toque no piso para medir a luz natural na altura do plano de leitura naquele ponto. O sol direto no ponto é testado raio a raio pela abertura, com parede, beiral, montante e folhas fechadas.</li>
+        <li>Furos: cada furo é tratado como um ponto na face interna da janela. O raio de sol que passa por ele (se a parede e o beiral deixarem) é seguido até o piso ou uma parede; a linha mostra onde cai o ponto de luz ao longo do dia. O ponto é uma pequena imagem do sol: cerca de 1 cm por metro de distância, mais o tamanho do furo, esticado quando o sol está baixo.</li>
         <li>Energia e potência usam irradiância direta de céu limpo (modelo de Meinel, altitude ~660 m). Não entram nuvens, luz difusa, reflexos, vidro nem obstruções externas como prédios e árvores.</li>
       </ul>
     </div>
@@ -639,6 +659,48 @@ function sunHits(sp,s,G,d,u,z){
   return passOut(G,ui,zi,s.Ef,-s.Nr,s.U);
 }
 function directAt(st,G,d,u,z){return st.Edn>0&&sunHits(st.sp,st.s,G,d,u,z)?LX.tau*st.Edn*st.s.U:0;}
+/* ---------- Furos (câmara escura) ---------- */
+let HOLES=[];
+const HCOL=i=>css('--h-'+(i%4+1));
+const holesKey=()=>HOLES.map(h=>h.x+','+h.z).join(';');
+function holeAbs(h){return [P.wOff+clamp(h.x,0,P.ww), P.sill+clamp(h.z,0,P.wh)];}
+function holeSpot(sp,s,G,hu,hz){
+  if(sp.alt<=Math.max(0,P.obs)||s.Ef<=5e-4||s.U<=0) return null;
+  if(!passOut(G,hu,hz,s.Ef,-s.Nr,s.U)) return null;
+  let t=hz/s.U, face='floor';
+  for(const k of ['back','left','right']){const th=wallHit(RG.walls[k],s,hu); if(th!==null&&th>0&&th<t){t=th;face=k;}}
+  const d=s.Ef*t, u=hu+s.Nr*t, z=hz-s.U*t;
+  let x=d,y=u; if(face!=='floor'){const wl=RG.walls[face]; x=(d-wl.a[0])*wl.e[0]+(u-wl.a[1])*wl.e[1]; y=z;}
+  return {face,x,y,p:[d,u,z],dist:t};
+}
+let holeDayC=null;
+function getHoleDay(doy){
+  const key=luxVer+'|'+doy+'|'+holesKey(); if(holeDayC&&holeDayC.key===key) return holeDayC;
+  const G=winGeo(), tr=HOLES.map(()=>[]), st=2;
+  for(let m=T0;m<=T1;m+=st){const sp=sunPos(doy,m), s=sp.alt>0?sunLocal(sp.alt,sp.az):null;
+    HOLES.forEach((h,i)=>{const [hu,hz]=holeAbs(h); tr[i].push({m,sp:s?holeSpot(sp,s,G,hu,hz):null});});}
+  const info=tr.map(a=>{const lit=a.filter(q=>q.sp); return lit.length?{first:lit[0].m,last:lit[lit.length-1].m+st,min:lit.length*st}:null;});
+  holeDayC={key,tr,info}; return holeDayC;
+}
+const FACE_PT={floor:'piso',back:'parede do fundo',left:'parede esquerda',right:'parede direita'};
+function spotText(q){if(!q) return 'sem sol no furo agora'; if(q.face==='floor') return 'agora no piso, a '+nf(q.p[0])+' m da janela'; const N=faceNames(); return 'agora na '+(q.face==='back'?'parede do fundo':N[q.face].replace('Parede','parede'))+', a '+nf(q.p[2])+' m do piso';}
+function holeBarUI(){
+  const bar=document.getElementById('holeBar'); bar.hidden=state.mode!=='holes'; if(bar.hidden) return;
+  if(!HOLES.length){bar.innerHTML='<span class="hint">Nenhum furo. Adicione furos na aba '+(ROOM.leaves?'Folhas':'Janela')+'.</span>'; return;}
+  const HD=getHoleDay(state.doy), G=winGeo(), sp=sunPos(state.doy,state.minute), s=sp.alt>0?sunLocal(sp.alt,sp.az):null;
+  bar.innerHTML=HOLES.map((h,i)=>{const [hu,hz]=holeAbs(h), q=s?holeSpot(sp,s,G,hu,hz):null, inf=HD.info[i];
+    const day=inf?'sol no furo das '+fmtTime(inf.first)+' às '+fmtTime(inf.last)+(inf.min<inf.last-inf.first-4?' (com interrupções, '+inf.min+' min)':''):'o sol não alcança este furo em '+fmtDate(state.doy);
+    return '<span><i style="background:'+HCOL(i)+'"></i><b>Furo '+(i+1)+'</b> · '+day+(inf?' · '+spotText(q):'')+'</span>';}).join('');
+}
+function holesUI(){
+  const L=document.getElementById('holeList');
+  L.innerHTML=HOLES.map((h,i)=>'<div class="hrow"><span class="hn" style="background:'+HCOL(i)+'">'+(i+1)+'</span><label>da borda esq., cm<input type="number" step="1" min="0" data-h="'+i+'" data-k="x" value="'+Math.round(h.x*100)+'"></label><label>da base, cm<input type="number" step="1" min="0" data-h="'+i+'" data-k="z" value="'+Math.round(h.z*100)+'"></label><button type="button" class="mini" data-hdel="'+i+'" aria-label="Remover furo '+(i+1)+'">✕</button></div>').join('');
+  L.querySelectorAll('input').forEach(inp=>inp.addEventListener('input',()=>{const v=parseFloat(inp.value); if(!isFinite(v)) return; const h=HOLES[+inp.dataset.h], k=inp.dataset.k; h[k]=clamp(v/100,0,k==='x'?P.ww:P.wh); holesChanged(false);}));
+  L.querySelectorAll('[data-hdel]').forEach(b=>b.addEventListener('click',()=>{HOLES.splice(+b.dataset.hdel,1); holesChanged(true);}));
+  document.getElementById('bHoleAdd').hidden=HOLES.length>=4;
+}
+function holesChanged(rebuild){ROOM.holes=HOLES.map(h=>({x:h.x,z:h.z})); saveRooms(); if(rebuild) holesUI(); if(state.mode==='holes'){draw3D(); drawPlan();} else holeBarUI();}
+document.getElementById('bHoleAdd').addEventListener('click',()=>{if(HOLES.length>=4) return; HOLES.push({x:Math.round(P.ww*25)/100,z:Math.round(P.wh*50)/100}); holesChanged(true); if(state.mode!=='holes') document.querySelector('[data-mode="holes"]').click();});
 /* ---------- Ponto escolhido ---------- */
 let PICK=null;
 const pickKey=()=>PICK?nf(PICK.d,3)+','+nf(PICK.u,3)+','+LX.hwp:'-';
@@ -748,7 +810,7 @@ function draw3D(){
   const fwd=norm(sub(tgt,cam)), right=norm(cross(fwd,[0,0,1])), up=cross(right,fwd);
   const raw=p=>{const q=sub(p,cam),z=dot(q,fwd);return [dot(q,right)/z,dot(q,up)/z];};
   const [u0,u1]=winU(), z0=P.sill, z1=P.sill+P.wh, zo=z1+P.ohOff;
-  const s=E.s, sunUp=E.sp.alt>0, front=s.Ef>0, HT=getHeat(), LM=state.mode==='lux'?getLuxMap():null;
+  const s=E.s, sunUp=E.sp.alt>0, front=s.Ef>0, HT=getHeat(), LM=state.mode==='lux'?getLuxMap():null, HM=state.mode==='holes';
   const sunDir=norm([-s.Ef,-s.Nr,s.U]);
   const wc=[0,(u0+u1)/2,(z0+z1)/2], sd=Math.max(1.5,Math.max(Lr,Wr)*0.25);
   const sunPt=[wc[0]+sd*sunDir[0],wc[1]+sd*sunDir[1],wc[2]+sd*sunDir[2]];
@@ -784,7 +846,7 @@ function draw3D(){
       ctx.restore();
     } else if(HT&&HT.g[fc.k]&&HT.max>0){const G=HT.g[fc.k];
       for(let i=0;i<G.nx;i++) for(let j=0;j<G.ny;j++){const val=G.a[i*G.ny+j]; if(val<=0)continue; cell(fc.to,i*CELL,j*CELL,CELL,CELL,ramp(val/HT.max));}
-    } else if(!HT&&!LM&&E.pt[fc.k]) for(const p of E.pt[fc.k]) poly(p.map(q=>fc.to(q[0],q[1])),alpha(C.sun,0.9),null);
+    } else if(!HT&&!LM&&!HM&&E.pt[fc.k]) for(const p of E.pt[fc.k]) poly(p.map(q=>fc.to(q[0],q[1])),alpha(C.sun,0.9),null);
   }
   // janela, montante, beiral
   poly([[0,u0,z0],[0,u1,z0],[0,u1,z1],[0,u0,z1]],null,C.ink2,1.5);
@@ -794,12 +856,20 @@ function draw3D(){
    if(P.mull>0) poly([[0,uc-P.mull/2,z0],[0,uc+P.mull/2,z0],[0,uc+P.mull/2,z1],[0,uc-P.mull/2,z1]],C.ink2,null);}
   if(P.ohD>0) poly([[-P.wallT,0,zo],[-P.wallT-P.ohD,0,zo],[-P.wallT-P.ohD,Wr,zo],[-P.wallT,Wr,zo]],alpha(C.ink2,0.35),C.ink2,1);
   // raios
-  if(!HT&&!LM&&E.rects.length){
+  if(!HT&&!LM&&!HM&&E.rects.length){
     for(const r of E.rects) for(const [u,z] of [[r.u0,r.z0],[r.u1,r.z0],[r.u1,r.z1],[r.u0,r.z1]]){
       let t=z/s.U; for(const k of ['back','left','right']){const th=wallHit(RG.walls[k],s,u); if(th!==null&&th>=0) t=Math.min(t,th);}
       line([0,u,z],[s.Ef*t,u+s.Nr*t,z-s.U*t],alpha(C.sun,0.45),1);
     }
   }
+  // furos: trajeto do ponto de luz no dia, fio de luz e ponto agora
+  if(HM&&HOLES.length){const HD=getHoleDay(state.doy), G=winGeo(), sp=E.sp;
+    HOLES.forEach((h,i)=>{const c=HCOL(i), [hu,hz]=holeAbs(h), tr=HD.tr[i];
+      ctx.beginPath(); let on=false; for(const q of tr){if(!q.sp){on=false;continue;} const r=pr(q.sp.p); on?ctx.lineTo(r[0],r[1]):ctx.moveTo(r[0],r[1]); on=true;} ctx.strokeStyle=alpha(c,0.85); ctx.lineWidth=2; ctx.lineJoin='round'; ctx.stroke();
+      for(const q of tr) if(q.sp&&q.m%60===0){const r=pr(q.sp.p); ctx.beginPath(); ctx.arc(r[0],r[1],2.5,0,7); ctx.fillStyle=c; ctx.fill();}
+      const now=sp.alt>0?holeSpot(sp,E.s,G,hu,hz):null, hp=pr([0,hu,hz]);
+      if(now){line([0,hu,hz],now.p,alpha(css('--sun'),0.95),2); const r=pr(now.p); ctx.beginPath(); ctx.arc(r[0],r[1],5.5,0,7); ctx.fillStyle=css('--sun'); ctx.fill(); ctx.strokeStyle=c; ctx.lineWidth=2; ctx.stroke();}
+      ctx.beginPath(); ctx.arc(hp[0],hp[1],3.5,0,7); ctx.fillStyle=c; ctx.fill(); ctx.strokeStyle=css('--surface'); ctx.lineWidth=1; ctx.stroke();});}
   // ponto escolhido
   if(PICK){const pk=css('--pick'), a=[PICK.d,PICK.u,0], b=[PICK.d,PICK.u,LX.hwp];
     line(a,b,pk,1.5,[3,3]); const q=pr(b); ctx.beginPath(); ctx.arc(q[0],q[1],6,0,7); ctx.fillStyle=css('--surface'); ctx.fill(); ctx.lineWidth=2.5; ctx.strokeStyle=pk; ctx.stroke();
@@ -851,7 +921,7 @@ function drawPlan(){
   } else if(mode==='lux'){
     const LM=getLuxMap();
     if(!LM.night){ctx.save(); pathXY(corners('floor')); ctx.clip(); for(let i=0;i<LM.nx;i++) for(let j=0;j<LM.ny;j++){const v=LM.a[i*LM.ny+j]; if(v<0)continue; quadFace('floor',i*LM.c,j*LM.c,Math.min((i+1)*LM.c,RG.L),Math.min((j+1)*LM.c,RG.W),ramp(luxT(v)),1);} ctx.restore();}
-  } else {
+  } else if(mode!=='holes') {
     for(const k in E.pt) for(const p of E.pt[k]){pathXY(p.map(q=>T[k](q[0],q[1])));ctx.fillStyle=alpha(C.sun,0.92);ctx.fill();}
   }
   // grade do piso e contornos
@@ -867,6 +937,19 @@ function drawPlan(){
   // pontos de referência da luz natural
   if(mode==='lux'){ctx.fillStyle=C.ink;ctx.font='11px '+css('--font-body');ctx.textAlign='left';ctx.textBaseline='middle';
     for(const [n,d,u] of refPts()){const p=S(u,d);ctx.beginPath();ctx.arc(p[0],p[1],3.5,0,7);ctx.fill();ctx.fillText(n,p[0]+6,p[1]);}}
+  if(mode==='holes'&&HOLES.length){const HD=getHoleDay(state.doy), G=winGeo(), sp=E.sp, P2=q=>S(...T[q.face](q.x,q.y));
+    ctx.font='600 10px '+css('--font-body'); ctx.textBaseline='middle'; ctx.textAlign='left';
+    HOLES.forEach((h,i)=>{const c=HCOL(i), [hu,hz]=holeAbs(h), tr=HD.tr[i];
+      ctx.beginPath(); let prev=null; for(const q of tr){const sp_=q.sp; if(!sp_){prev=null;continue;} const r=P2(sp_);
+        if(prev&&(prev.face===sp_.face||prev.face==='floor'||sp_.face==='floor')) ctx.lineTo(r[0],r[1]); else ctx.moveTo(r[0],r[1]); prev=sp_;}
+      ctx.strokeStyle=c; ctx.lineWidth=2.2; ctx.lineJoin='round'; ctx.lineCap='round'; ctx.stroke();
+      tr.forEach((q,k)=>{if(!q.sp||(k&&tr[k-1].sp)||q.m%60===0) return; const r=P2(q.sp), lb=fmtTime(q.m); ctx.beginPath(); ctx.arc(r[0],r[1],3.5,0,7); ctx.fillStyle=css('--surface'); ctx.fill(); ctx.strokeStyle=c; ctx.lineWidth=1.8; ctx.stroke();
+        ctx.lineWidth=3; ctx.strokeStyle=alpha(css('--surface'),0.85); ctx.strokeText(lb,r[0]+6,r[1]); ctx.fillStyle=c; ctx.fillText(lb,r[0]+6,r[1]);});
+      for(const q of tr) if(q.sp&&q.m%60===0){const r=P2(q.sp); ctx.beginPath(); ctx.arc(r[0],r[1],3.5,0,7); ctx.fillStyle=c; ctx.fill(); ctx.strokeStyle=C.floor; ctx.lineWidth=1; ctx.stroke();
+        const lb=(q.m/60)+'h'; ctx.lineWidth=3; ctx.strokeStyle=alpha(css('--surface'),0.85); ctx.strokeText(lb,r[0]+6,r[1]); ctx.fillStyle=c; ctx.fillText(lb,r[0]+6,r[1]);}
+      const hp=S(...T.win(hu,hz)); ctx.beginPath(); ctx.arc(hp[0],hp[1],4,0,7); ctx.fillStyle=c; ctx.fill(); ctx.strokeStyle=css('--surface'); ctx.lineWidth=1.2; ctx.stroke();
+      const now=sp.alt>0?holeSpot(sp,E.s,G,hu,hz):null;
+      if(now){const r=P2(now); ctx.beginPath(); ctx.arc(r[0],r[1],6.5,0,7); ctx.fillStyle=C.sun; ctx.fill(); ctx.strokeStyle=c; ctx.lineWidth=2.2; ctx.stroke();}});}
   if(PICK){const pk=css('--pick'), p=S(PICK.u,PICK.d); ctx.beginPath(); ctx.arc(p[0],p[1],7,0,7); ctx.fillStyle=css('--surface'); ctx.fill(); ctx.lineWidth=2.5; ctx.strokeStyle=pk; ctx.stroke(); ctx.beginPath(); ctx.arc(p[0],p[1],2.5,0,7); ctx.fillStyle=pk; ctx.fill();}
   // rótulos
   const N=faceNames(); ctx.fillStyle=C.ink2; ctx.font='11px '+css('--font-body'); ctx.textAlign='center'; ctx.textBaseline='middle';
@@ -876,7 +959,9 @@ function drawPlan(){
   if(mode!=='lux'){const p=S((RG.uL+RG.W)/2,RG.L-0.2*Math.max(1,RG.L/4.2)); ctx.fillText(RG.Wb===RG.W?'Piso '+nf(RG.W)+' × '+nf(RG.L)+' m':'Piso '+nf(RG.area,1)+' m²',p[0],p[1]);}
   // legenda
   const lg=document.getElementById('planLegend');
-  if(mode==='lux') lg.innerHTML=getLuxMap().night?'<span>noite: sem luz natural</span>':luxLegend(' · '+fmtDate(state.doy)+', '+fmtTime(state.minute)+' · plano a '+nf(LX.hwp)+' m');
+  holeBarUI();
+  if(mode==='holes') lg.innerHTML=HOLES.length?'<span>ponto de luz em '+fmtDate(state.doy)+'<span class="deskonly"> · bolinhas nas horas cheias</span> · <span style="color:var(--sun)">●</span> '+fmtTime(state.minute)+'</span>':'<span>sem furos</span>';
+  else if(mode==='lux') lg.innerHTML=getLuxMap().night?'<span>noite: sem luz natural</span>':luxLegend(' · '+fmtDate(state.doy)+', '+fmtTime(state.minute)+' · plano a '+nf(LX.hwp)+' m');
   else if(mode==='instant') lg.innerHTML='<span class="sw"></span><span>sol direto em '+fmtDate(state.doy)+', '+fmtTime(state.minute)+'</span>';
   else if(max<=0) lg.innerHTML='<span>sem sol direto '+(mode==='day'?'em '+fmtDate(state.doy):'no ano')+'</span>';
   else { const u=mode==='day'?'h de sol em '+fmtDate(state.doy):'h de sol por ano'; lg.innerHTML='<span>0</span><span class="bar" style="background:'+rampCss()+'"></span><span>'+nf(max,1)+' '+u+'</span>'; }
@@ -1016,17 +1101,17 @@ function readParams(){
 const ROOMS={
   valinhos:{sub:'Janela a leste em Valinhos (SP) · sol direto e luz natural ao longo de 2026',leaves:true,refs:null,
     P:{W:3,L:4.2,wb:3,H:2.7,ww:1.2,wOff:0.9,wh:0.9,sill:1.1,mull:0.05,wallT:0.15,ohD:0.25,ohOff:0,facade:90,lat:-22.9706,lon:-46.9958,obs:0,closeL:false,closeR:false},
-    LX:{tau:0.75,rf:0.3,rw:0.6,rc:0.8,hwp:0.75}},
+    LX:{tau:0.75,rf:0.3,rw:0.6,rc:0.8,hwp:0.75},holes:[{x:0.6,z:0.89},{x:0.91,z:0.01}]},
   sp:{sub:'Loft de 85 m² com a sacada envidraçada (5,90 m) voltada a SSE · Brooklin, São Paulo',leaves:false,
     refs:[['sofá',1.7,4.2],['mesa de jantar',5.9,2.4],['cama da suíte',12.1,3.2]],
     P:{W:5.95,L:13.55,wb:3.9,H:3.5,ww:5.9,wOff:0.03,wh:3.32,sill:0,mull:0,wallT:0.1,ohD:0,ohOff:0,facade:157.5,lat:-23.608,lon:-46.693,obs:0,closeL:false,closeR:false},
-    LX:{tau:0.78,rf:0.3,rw:0.6,rc:0.8,hwp:0.75}}
+    LX:{tau:0.78,rf:0.3,rw:0.6,rc:0.8,hwp:0.75},holes:[]}
 };
 const ROOM_DEFAULTS=JSON.parse(JSON.stringify(ROOMS));
 let ROOM_ID='valinhos', ROOM=ROOMS.valinhos;
-function saveRooms(){ROOM.P=Object.assign({},ROOM.P,pickP()); ROOM.LX=Object.assign({},LX); try{localStorage.setItem('insol-rooms-v1',JSON.stringify({id:ROOM_ID,rooms:{valinhos:{P:ROOMS.valinhos.P,LX:ROOMS.valinhos.LX,pick:ROOMS.valinhos.pick||null},sp:{P:ROOMS.sp.P,LX:ROOMS.sp.LX,pick:ROOMS.sp.pick||null}}}));}catch(_){}}
+function saveRooms(){ROOM.P=Object.assign({},ROOM.P,pickP()); ROOM.LX=Object.assign({},LX); try{localStorage.setItem('insol-rooms-v1',JSON.stringify({id:ROOM_ID,rooms:{valinhos:{P:ROOMS.valinhos.P,LX:ROOMS.valinhos.LX,pick:ROOMS.valinhos.pick||null,holes:ROOMS.valinhos.holes},sp:{P:ROOMS.sp.P,LX:ROOMS.sp.LX,pick:ROOMS.sp.pick||null,holes:ROOMS.sp.holes}}}));}catch(_){}}
 function pickP(){const o={};for(const k in ROOM_DEFAULTS[ROOM_ID].P) o[k]=P[k];return o;}
-function loadRooms(){try{const j=JSON.parse(localStorage.getItem('insol-rooms-v1')||'null'); if(!j)return; for(const k in j.rooms) if(ROOMS[k]){Object.assign(ROOMS[k].P,j.rooms[k].P);Object.assign(ROOMS[k].LX,j.rooms[k].LX);ROOMS[k].pick=j.rooms[k].pick||null;} if(ROOMS[j.id]) ROOM_ID=j.id;}catch(_){}}
+function loadRooms(){try{const j=JSON.parse(localStorage.getItem('insol-rooms-v1')||'null'); if(!j)return; for(const k in j.rooms) if(ROOMS[k]){Object.assign(ROOMS[k].P,j.rooms[k].P);Object.assign(ROOMS[k].LX,j.rooms[k].LX);ROOMS[k].pick=j.rooms[k].pick||null; if(Array.isArray(j.rooms[k].holes)) ROOMS[k].holes=j.rooms[k].holes;} if(ROOMS[j.id]) ROOM_ID=j.id;}catch(_){}}
 function fillInputs(){
   const set=(id,v)=>{document.getElementById(id).value=+(+v).toFixed(4);};
   const p=ROOM.P,l=ROOM.LX;
@@ -1040,11 +1125,11 @@ function fillInputs(){
   document.querySelectorAll('[data-room]').forEach(b=>{const on=b.dataset.room===ROOM_ID;b.classList.toggle('on',on);b.setAttribute('aria-selected',on);});
 }
 function selectRoom(id){
-  ROOM_ID=id; ROOM=ROOMS[id]; Object.assign(P,{closeL:false,closeR:false},ROOM.P); Object.assign(LX,ROOM.LX); PICK=ROOM.pick?{d:ROOM.pick.d,u:ROOM.pick.u}:null;
+  ROOM_ID=id; ROOM=ROOMS[id]; Object.assign(P,{closeL:false,closeR:false},ROOM.P); Object.assign(LX,ROOM.LX); PICK=ROOM.pick?{d:ROOM.pick.d,u:ROOM.pick.u}:null; HOLES=(ROOM.holes||[]).map(h=>({x:h.x,z:h.z}));
   fillInputs(); if(!readParams()) return;
   luxVer++; ANN=computeAnnual(); dayHeat=null; yearHeat=null; luxMapC=null; dayLuxC=null;
   if(!PICK&&state.metric==='pt'){state.metric='total'; document.getElementById('metric').value='total';}
-  pickUI(); renderAll();
+  pickUI(); holesUI(); renderAll();
 }
 document.querySelectorAll('[data-room]').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.room!==ROOM_ID){stopPlay(); selectRoom(b.dataset.room);}}));
 let pTimer=null;
@@ -1083,7 +1168,7 @@ function tick(ts){
   if(ts-lastTs>40){lastTs=ts; const dd=ANN.days[state.doy-1];
     const lux=state.mode==='lux', a=lux?dd.dl0:dd.first, b=lux?dd.dl1:dd.last;
     if(a===null){stopPlay();return;}
-    let m=state.minute+(lux?5:2); if(m>b+30||m<a-30) m=a-(lux?0:20); setMin(m);}
+    let m=state.minute+(lux?5:state.mode==='holes'?1:2); if(m>b+30||m<a-30) m=a-(lux?0:20); setMin(m);}
   requestAnimationFrame(tick);
 }
 const bPlayM=document.getElementById('bPlayM'); bPlayM.addEventListener('click',()=>bPlay.click());
