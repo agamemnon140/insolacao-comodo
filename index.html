@@ -1102,16 +1102,17 @@ const ROOMS={
   valinhos:{sub:'Janela a leste em Valinhos (SP) · sol direto e luz natural ao longo de 2026',leaves:true,refs:null,
     P:{W:3,L:4.2,wb:3,H:2.7,ww:1.2,wOff:0.9,wh:0.9,sill:1.1,mull:0.05,wallT:0.15,ohD:0.25,ohOff:0,facade:90,lat:-22.9706,lon:-46.9958,obs:0,closeL:false,closeR:false},
     LX:{tau:0.75,rf:0.3,rw:0.6,rc:0.8,hwp:0.75},holes:[{x:0.6,z:0.89},{x:0.91,z:0.01}]},
-  sp:{sub:'Loft de 85 m² com a sacada envidraçada (5,90 m) voltada a SSE · Brooklin, São Paulo',leaves:false,
+  sp:{sub:'Loft de 85 m² com a sacada envidraçada (5,90 m) voltada a S (175°, medido) · Brooklin, São Paulo',leaves:false,
     refs:[['sofá',1.7,4.2],['mesa de jantar',5.9,2.4],['cama da suíte',12.1,3.2]],
-    P:{W:5.95,L:13.55,wb:3.9,H:3.5,ww:5.9,wOff:0.03,wh:3.32,sill:0,mull:0,wallT:0.1,ohD:0,ohOff:0,facade:157.5,lat:-23.608,lon:-46.693,obs:0,closeL:false,closeR:false},
+    P:{W:5.95,L:13.55,wb:3.9,H:3.5,ww:5.9,wOff:0.03,wh:3.32,sill:0,mull:0,wallT:0.1,ohD:0,ohOff:0,facade:175,lat:-23.5992,lon:-46.6898,obs:0,closeL:false,closeR:false},
     LX:{tau:0.78,rf:0.3,rw:0.6,rc:0.8,hwp:0.75},holes:[]}
 };
 const ROOM_DEFAULTS=JSON.parse(JSON.stringify(ROOMS));
 let ROOM_ID='valinhos', ROOM=ROOMS.valinhos;
 function saveRooms(){ROOM.P=Object.assign({},ROOM.P,pickP()); ROOM.LX=Object.assign({},LX); try{localStorage.setItem('insol-rooms-v1',JSON.stringify({id:ROOM_ID,rooms:{valinhos:{P:ROOMS.valinhos.P,LX:ROOMS.valinhos.LX,pick:ROOMS.valinhos.pick||null,holes:ROOMS.valinhos.holes},sp:{P:ROOMS.sp.P,LX:ROOMS.sp.LX,pick:ROOMS.sp.pick||null,holes:ROOMS.sp.holes}}}));}catch(_){}}
 function pickP(){const o={};for(const k in ROOM_DEFAULTS[ROOM_ID].P) o[k]=P[k];return o;}
-function loadRooms(){try{const j=JSON.parse(localStorage.getItem('insol-rooms-v1')||'null'); if(!j)return; for(const k in j.rooms) if(ROOMS[k]){Object.assign(ROOMS[k].P,j.rooms[k].P);Object.assign(ROOMS[k].LX,j.rooms[k].LX);ROOMS[k].pick=j.rooms[k].pick||null; if(Array.isArray(j.rooms[k].holes)) ROOMS[k].holes=j.rooms[k].holes;} if(ROOMS[j.id]) ROOM_ID=j.id;}catch(_){}}
+function loadRooms(){try{const j=JSON.parse(localStorage.getItem('insol-rooms-v1')||'null'); if(!j)return; for(const k in j.rooms) if(ROOMS[k]){Object.assign(ROOMS[k].P,j.rooms[k].P);Object.assign(ROOMS[k].LX,j.rooms[k].LX);ROOMS[k].pick=j.rooms[k].pick||null; if(Array.isArray(j.rooms[k].holes)) ROOMS[k].holes=j.rooms[k].holes;}
+  {const q=ROOMS.sp.P; if(q.facade===157.5) q.facade=175; if(q.lat===-23.608&&q.lon===-46.693){q.lat=-23.5992; q.lon=-46.6898;}} if(ROOMS[j.id]) ROOM_ID=j.id;}catch(_){}}
 function fillInputs(){
   const set=(id,v)=>{document.getElementById(id).value=+(+v).toFixed(4);};
   const p=ROOM.P,l=ROOM.LX;
